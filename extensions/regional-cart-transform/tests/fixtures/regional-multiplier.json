@@ -1,0 +1,38 @@
+{
+  "target": "cart.transform.run",
+  "input": {
+    "cart": {
+      "attribute": {
+        "value": "0.8"
+      },
+      "lines": [
+        {
+          "id": "gid://shopify/CartLine/1",
+          "quantity": 1,
+          "cost": {
+            "amountPerQuantity": {
+              "amount": "100.00",
+              "currencyCode": "INR"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "expectedOutput": {
+    "operations": [
+      {
+        "lineUpdate": {
+          "cartLineId": "gid://shopify/CartLine/1",
+          "price": {
+            "adjustment": {
+              "fixedPricePerUnit": {
+                "amount": "80.00"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

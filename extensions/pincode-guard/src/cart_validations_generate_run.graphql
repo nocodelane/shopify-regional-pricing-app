@@ -1,0 +1,12 @@
+query CartValidationsGenerateRunInput {
+  cart {
+    attribute(key: "_pincode") {
+      value
+    }
+    deliveryGroups {
+      deliveryAddress {
+        zip
+      }
+    }
+  }
+}

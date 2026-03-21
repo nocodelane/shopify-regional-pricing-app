@@ -1,0 +1,17 @@
+api_version = "2025-01"
+
+[[extensions]]
+name = "t:name"
+handle = "pincode-guard"
+type = "function"
+uid = "86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.validations.generate.run"
+  input_query = "src/cart_validations_generate_run.graphql"
+  export = "cart-validations-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

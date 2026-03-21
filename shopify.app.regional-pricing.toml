@@ -1,0 +1,30 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "2a1979d05581e76e6bb1096d17efa342"
+name = "regional-pricing"
+application_url = "https://racing-admissions-onion-thousand.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2026-04"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_cart_transforms,write_cart_transforms,read_validations,write_validations,write_products"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://example.com/api/auth",
+  "https://racing-admissions-onion-thousand.trycloudflare.com/api/auth"
+]
+
+[app_proxy]
+url = "https://racing-admissions-onion-thousand.trycloudflare.com"
+subpath = "regional-sync-api"
+prefix = "apps"

@@ -1,0 +1,312 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model Region {
+  id                 String                      @id @default(uuid())
+  shop               String
+  name               String
+  homepageTemplate   String?
+  priceMultiplier    Float                       @default(1.0)
+  status             String                      @default("active")
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  collectionRules    CollectionRegionRule[]
+  pincodes           Pincode[]
+  pincodeRanges      PincodeRange[]
+  pricingRules       PricingRule[]
+  productRules       ProductRegionRule[]
+  homepageConfigs    RegionHomepageConfig[]
+  componentOverrides RegionalComponentOverride[]
+  tagRules           TagRegionRule[]
+
+  @@unique([shop, name])
+}
+
+model Pincode {
+  id        String   @id @default(uuid())
+  shop      String
+  pincode   String
+  regionId  String
+  createdAt DateTime @default(now())
+  region    Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, pincode])
+  @@index([pincode])
+}
+
+model PincodeRange {
+  id        String   @id @default(uuid())
+  shop      String
+  start     Int
+  end       Int
+  regionId  String
+  createdAt DateTime @default(now())
+  region    Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@index([shop, start, end])
+}
+
+model PricingRule {
+  id               String    @id @default(uuid())
+  shop             String
+  regionId         String
+  type             String
+  value            Float
+  collectionId     String?
+  collectionHandle String?
+  productId        String?
+  productHandle    String?
+  startTime        DateTime?
+  endTime          DateTime?
+  priority         Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  region           Region    @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@index([shop, regionId])
+  @@index([collectionId])
+}
+
+model RegionHomepageConfig {
+  id                String   @id @default(uuid())
+  shop              String
+  regionId          String?  @unique
+  sectionsOrder     String   @default("[]")
+  hiddenSelectors   String   @default("")
+  showOnlySelectors String   @default("")
+  placementHeight   String   @default("400px")
+  banners           String   @default("[]")
+  collections       String   @default("[]")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  region            Region?  @relation(fields: [regionId], references: [id], onDelete: Cascade)
+}
+
+model RegionalComponent {
+  id              String                      @id @default(uuid())
+  shop            String
+  name            String
+  type            String
+  defaultSettings String                      @default("{}")
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+  overrides       RegionalComponentOverride[]
+}
+
+model RegionalComponentOverride {
+  id          String            @id @default(uuid())
+  componentId String
+  regionId    String
+  settings    String            @default("{}")
+  region      Region            @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  component   RegionalComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([componentId, regionId])
+}
+
+model ProductRegionRule {
+  id            String   @id @default(uuid())
+  shop          String
+  productId     String
+  regionId      String
+  allowed       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  productHandle String?
+  region        Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, productId, regionId])
+  @@index([productId])
+  @@index([shop, regionId])
+}
+
+model CollectionRegionRule {
+  id               String   @id @default(uuid())
+  shop             String
+  collectionId     String
+  collectionHandle String?
+  regionId         String
+  allowed          Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  region           Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, collectionId, regionId])
+  @@index([collectionId])
+  @@index([shop, regionId])
+}
+
+model TagRegionRule {
+  id        String   @id @default(uuid())
+  shop      String
+  tag       String
+  regionId  String
+  allowed   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  region    Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, tag, regionId])
+  @@index([shop, regionId])
+}
+
+model ModalConfig {
+  id                     String   @id @default(uuid())
+  shop                   String   @unique
+  primaryColor           String   @default("#000000")
+  backgroundColor        String   @default("#ffffff")
+  textColor              String   @default("#333333")
+  fontSize               String   @default("16px")
+  fontFamily             String   @default("Inter, sans-serif")
+  headerImage            String?
+  title                  String   @default("Enter your Pincode")
+  description            String   @default("Please provide your pincode to see accurate regional pricing and availability.")
+  confirmButtonText      String   @default("Confirm")
+  showFloatingButton     Boolean  @default(true)
+  floatingButtonText     String   @default("Change Pincode")
+  position               String   @default("bottom-right")
+  injectionSelector      String?
+  showCurrentPincode     Boolean  @default(true)
+  pincodePrefixText      String   @default("Delivering to: ")
+  showLocationIcon       Boolean  @default(true)
+  triggerBackgroundColor String   @default("#000000")
+  triggerTextColor       String   @default("#ffffff")
+  triggerIconColor       String   @default("#ffffff")
+  triggerBorderRadius    String   @default("4px")
+  triggerTransparent     Boolean  @default(false)
+  triggerPadding         String   @default("10px 18px")
+  triggerFontSize        String   @default("14px")
+  triggerFontWeight      String   @default("600")
+  triggerLayoutStyle     String   @default("boxed")
+  triggerIconSize        String   @default("18px")
+  triggerBorderWidth     String   @default("1px")
+  triggerBorderColor     String   @default("#000000")
+  usePulse               Boolean  @default(false)
+  useGlassmorphism       Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model CollectionProductHandle {
+  id            String   @id @default(uuid())
+  shop          String
+  collectionId  String
+  productHandle String
+  updatedAt     DateTime @updatedAt
+
+  @@unique([collectionId, productHandle])
+  @@index([shop, collectionId])
+}
+
+model ProductCache {
+  id          String   @id
+  shop        String
+  tags        String
+  collections String   @default("[]")
+  updatedAt   DateTime @updatedAt
+
+  @@index([shop])
+}
+
+model LLMConfig {
+  id                String   @id @default(uuid())
+  shop              String   @unique
+  provider          String   @default("openai")
+  apiKeyEncrypted   String?
+  encryptionIV      String?
+  enabled           Boolean  @default(false)
+  allowSalesData    Boolean  @default(false)
+  allowPincodeData  Boolean  @default(true)
+  allowCustomerData Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model AppConfig {
+  id                    String   @id @default(uuid())
+  shop                  String   @unique
+  regionalPricingActive Boolean  @default(true)
+  visibilityRulesActive Boolean  @default(true)
+  abTestingActive       Boolean  @default(false)
+  waitlistActive        Boolean  @default(true)
+  aiFeaturesActive      Boolean  @default(false)
+  flashSalesActive      Boolean  @default(true)
+  pincodeGuardActive    Boolean  @default(false)
+  allowAbsurdPricing    Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+}
+
+model PincodeSearch {
+  id        String   @id @default(uuid())
+  shop      String
+  pincode   String
+  matched   Boolean  @default(false)
+  regionId  String?
+  createdAt DateTime @default(now())
+
+  @@index([shop, pincode])
+  @@index([shop, createdAt])
+}
+
+model WaitlistEntry {
+  id        String   @id @default(uuid())
+  shop      String
+  email     String
+  pincode   String
+  createdAt DateTime @default(now())
+
+  @@index([shop, pincode])
+}
+
+model ABTest {
+  id                String    @id @default(uuid())
+  shop              String
+  regionId          String
+  name              String
+  controlMultiplier Float     @default(1.0)
+  variantMultiplier Float
+  type              String    @default("PRICING")
+  config            String?
+  status            String    @default("draft")
+  startDate         DateTime?
+  endDate           DateTime?
+  resultsControl    Int       @default(0)
+  resultsVariant    Int       @default(0)
+  createdAt         DateTime  @default(now())
+
+  @@index([shop, regionId])
+}
+
+model RegionalPreset {
+  id        String   @id @default(uuid())
+  shop      String
+  name      String
+  data      String
+  createdAt DateTime @default(now())
+}

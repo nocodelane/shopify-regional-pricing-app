@@ -1,0 +1,20 @@
+query CartTransformRunInput {
+  cart {
+    attribute(key: "_regionMultiplier") {
+      value
+    }
+    lines {
+      id
+      quantity
+      attribute(key: "_regionMultiplier") {
+        value
+      }
+      cost {
+        amountPerQuantity {
+          amount
+          currencyCode
+        }
+      }
+    }
+  }
+}
