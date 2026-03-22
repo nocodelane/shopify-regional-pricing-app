@@ -34,6 +34,7 @@ import {
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { generateCopy } from "../utils/llm.server";
 
 // Helper to sanitize database strings
 const s = (val: any, fallback: string) => {
@@ -72,6 +73,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     triggerTransparent: config.triggerTransparent === true,
     usePulse: (config as any).usePulse === true,
     useGlassmorphism: (config as any).useGlassmorphism === true,
+    showOnAnyPage: (config as any).showOnAnyPage !== false,
+    disableScroll: (config as any).disableScroll !== false,
+    overlayColor: s((config as any).overlayColor, "rgba(0,0,0,0.6)"),
+    overlayBlur: s((config as any).overlayBlur, "8px"),
     title: s(config.title, "Enter your Pincode"),
     description: s(config.description, "Please provide your pincode to see accurate regional pricing."),
     confirmButtonText: s(config.confirmButtonText, "Confirm"),
@@ -98,6 +103,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const formData = await request.formData();
+  const intent = formData.get("intent");
   const data = Object.fromEntries(formData);
   
   await prisma.modalConfig.update({
@@ -128,11 +134,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       triggerBorderColor: data.triggerBorderColor as string,
       usePulse: data.usePulse === "true",
       useGlassmorphism: data.useGlassmorphism === "true",
+      showOnAnyPage: data.showOnAnyPage === "true",
+      disableScroll: data.disableScroll === "true",
+      overlayColor: data.overlayColor as string,
+      overlayBlur: data.overlayBlur as string,
       pincodePrefixText: data.pincodePrefixText as string,
       injectionSelector: data.injectionSelector as string,
       headerImage: data.headerImage as string,
     } as any
   });
+
+  if (intent === "generate-ai-content") {
+    const prompt = formData.get("prompt") as string;
+    try {
+        const copy = await generateCopy(session.shop, prompt);
+        return json({ success: true, aiCopy: copy });
+    } catch (e: any) {
+        return json({ error: e.message }, { status: 500 });
+    }
+  }
 
   return json({ success: true });
 };
@@ -310,11 +330,19 @@ export default function ModalCustomize() {
                                         <Grid.Cell columnSpan={{xs: 6, sm: 4, md: 4}}>
                                             <ColorField label="Primary Action Color" value={formState.primaryColor} onChange={(v) => setFormState({...formState, primaryColor: v})} />
                                         </Grid.Cell>
-                                        <Grid.Cell columnSpan={{xs: 6, sm: 4, md: 4}}>
-                                            <ColorField label="Modal Text Color" value={formState.textColor} onChange={(v) => setFormState({...formState, textColor: v})} />
-                                        </Grid.Cell>
-                                     </Grid>
-                                  </BlockStack>
+                                         <Grid.Cell columnSpan={{xs: 6, sm: 4, md: 4}}>
+                                             <ColorField label="Modal Text Color" value={formState.textColor} onChange={(v) => setFormState({...formState, textColor: v})} />
+                                         </Grid.Cell>
+                                      </Grid>
+                                      <Grid>
+                                         <Grid.Cell columnSpan={{xs: 6, sm: 4, md: 6}}>
+                                             <TextField label="Overlay Color (RGBA)" value={formState.overlayColor} onChange={(v) => setFormState({...formState, overlayColor: v})} helpText="E.g. rgba(0,0,0,0.6)" autoComplete="off" prefix={<div style={{ width: '20px', height: '20px', borderRadius: '4px', backgroundColor: formState.overlayColor, border: '1px solid #ddd' }} />} />
+                                         </Grid.Cell>
+                                         <Grid.Cell columnSpan={{xs: 6, sm: 4, md: 6}}>
+                                             <TextField label="Overlay Blur" value={formState.overlayBlur} onChange={(v) => setFormState({...formState, overlayBlur: v})} helpText="E.g. 5px, 10px" autoComplete="off" />
+                                         </Grid.Cell>
+                                      </Grid>
+                                   </BlockStack>
                                </Card>
                             </Layout.Section>
                          </Layout>
@@ -420,15 +448,72 @@ export default function ModalCustomize() {
                             <Layout.Section>
                                <Card padding="400">
                                   <BlockStack gap="400">
-                                     <TextField label="Header/Target Selector" value={formState.injectionSelector} placeholder=".header__icons" onChange={(v) => setFormState({...formState, injectionSelector: v})} helpText="E.g. .header__icons, .footer__content, or #custom-pincode-holder" autoComplete="off" />
-                                     <Checkbox label="Show floating locator on all pages" checked={formState.showFloatingButton} onChange={(checked) => setFormState({...formState, showFloatingButton: checked})} />
-                                     <Select label="Floating Position" options={[{label: 'Bottom Right', value: 'bottom-right'}, {label: 'Bottom Left', value: 'bottom-left'}, {label: 'Top Right', value: 'top-right'}, {label: 'Top Left', value: 'top-left'}]} value={formState.position} onChange={(v) => setFormState({...formState, position: v})} />
-                                  </BlockStack>
+                                      <TextField label="Header/Target Selector" value={formState.injectionSelector} placeholder=".header__icons" onChange={(v) => setFormState({...formState, injectionSelector: v})} helpText="E.g. .header__icons, .footer__content, or #custom-pincode-holder" autoComplete="off" />
+                                      <Select label="Floating Position" options={[{label: 'Bottom Right', value: 'bottom-right'}, {label: 'Bottom Left', value: 'bottom-left'}, {label: 'Top Right', value: 'top-right'}, {label: 'Top Left', value: 'top-left'}]} value={formState.position} onChange={(v) => setFormState({...formState, position: v})} />
+                                      <Divider />
+                                      <Text variant="headingSm" as="h3">Visibility & Behavior</Text>
+                                      <BlockStack gap="200">
+                                         <Checkbox label="Show floating locator on all pages" checked={formState.showFloatingButton} onChange={(checked) => setFormState({...formState, showFloatingButton: checked})} />
+                                         <Checkbox label="Show popup on every page visit (if no location)" checked={formState.showOnAnyPage} onChange={(checked) => setFormState({...formState, showOnAnyPage: checked})} helpText="If disabled, the popup only appears automatically on the homepage." />
+                                         <Checkbox label="Lock background scroll when popup is open" checked={formState.disableScroll} onChange={(checked) => setFormState({...formState, disableScroll: checked})} />
+                                      </BlockStack>
+                                   </BlockStack>
                                </Card>
                             </Layout.Section>
                          </Layout>
                       </BlockStack>
                    )}
+
+                   {selectedTab === 3 && (
+                      <BlockStack gap="600">
+                         <Layout>
+                            <Layout.Section variant="oneThird">
+                                <Box paddingBlockEnd="400">
+                                   <Text variant="headingMd" as="h2">AI Optimization</Text>
+                                   <Text tone="subdued" as="p">Use AI to generate high-conversion regional copy based on your storefront context.</Text>
+                                </Box>
+                             </Layout.Section>
+                             <Layout.Section>
+                                <Card padding="400">
+                                   <BlockStack gap="400">
+                                      <Button 
+                                        icon={MagicIcon} 
+                                        variant="primary" 
+                                        onClick={() => {
+                                            fetcher.submit({ 
+                                                intent: "generate-ai-content", 
+                                                prompt: `Generate 3 variations of a short, high-conversion heading for a regional pricing pincode modal. The store is likely a retail store. The current heading is "${formState.title}". Provide ONLY the best variation as a plain string.` 
+                                            }, { method: "POST" });
+                                        }}
+                                        loading={fetcher.state === 'submitting' && fetcher.formData?.get('intent') === 'generate-ai-content'}
+                                      >
+                                        Optimize Heading & Description
+                                      </Button>
+                                      {fetcher.data && (fetcher.data as any).aiCopy && (
+                                          <Banner tone="success" title="AI Suggestion Ready">
+                                              <BlockStack gap="200">
+                                                <Text as="p">{(fetcher.data as any).aiCopy}</Text>
+                                                <Button size="slim" onClick={() => {
+                                                    setFormState({
+                                                        ...formState,
+                                                        title: (fetcher.data as any).aiCopy.split('\n')[0].replace('Heading: ', '').trim(),
+                                                        description: (fetcher.data as any).aiCopy.includes('\n') ? (fetcher.data as any).aiCopy.split('\n')[1].replace('Description: ', '').trim() : formState.description
+                                                    });
+                                                }}>Apply Suggestion</Button>
+                                              </BlockStack>
+                                          </Banner>
+                                      )}
+                                      {fetcher.data && (fetcher.data as any).error && (
+                                          <Banner tone="critical" title="AI Error">
+                                              <p>{(fetcher.data as any).error}</p>
+                                          </Banner>
+                                      )}
+                                   </BlockStack>
+                                </Card>
+                             </Layout.Section>
+                          </Layout>
+                       </BlockStack>
+                    )}
                 </Box>
                 </Tabs>
              </Card>
@@ -515,13 +600,17 @@ export default function ModalCustomize() {
 
                   <BlockStack gap="300">
                      <Text variant="bodySm" tone="subdued" fontWeight="bold" as="p">Active Modal Experience</Text>
-                     <div style={{ 
-                         padding: '20px', 
-                         background: '#f4f6f8', 
-                         borderRadius: '12px', 
-                         display: 'flex', 
-                         justifyContent: 'center' 
-                     }}>
+                      <div style={{ 
+                          padding: '40px 20px', 
+                          background: `linear-gradient(${formState.overlayColor}, ${formState.overlayColor}), url("https://cdn.shopify.com/s/files/1/0262/4071/2726/files/lifestyle-1.jpg?v=1602112345")`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backdropFilter: `blur(${formState.overlayBlur})`,
+                          WebkitBackdropFilter: `blur(${formState.overlayBlur})`,
+                          borderRadius: '12px', 
+                          display: 'flex', 
+                          justifyContent: 'center' 
+                      }}>
                         <div style={{ width: '100%', maxWidth: '280px', borderRadius: '16px', border: `1px solid #dfe3e8`, backgroundColor: formState.backgroundColor, color: formState.textColor, boxShadow: '0 20px 50px rgba(0,0,0,0.15)', overflow: 'hidden' }}>
                             {formState.headerImage && (
                                 <div style={{ width: '100%', height: '80px', overflow: 'hidden' }}>

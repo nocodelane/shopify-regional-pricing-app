@@ -2,7 +2,7 @@
 
 client_id = "e5d176a5072c8441e9bb21f779c68238"
 name = "Regional Pricing Pro"
-application_url = "https://example.com"
+application_url = "https://tiny-duo-expertise-factory.trycloudflare.com"
 embedded = true
 
 [build]
@@ -10,11 +10,20 @@ automatically_update_urls_on_dev = true
 include_config_on_deploy = true
 
 [webhooks]
-api_version = "2026-01"
+api_version = "2026-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_cart_transforms,read_validations,write_cart_transforms,write_products,write_validations"
+scopes = "read_cart_transforms,write_cart_transforms,read_validations,write_validations,write_products"
+optional_scopes = [ ]
+use_legacy_install_flow = false
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [
+  "https://tiny-duo-expertise-factory.trycloudflare.com/api/auth"
+]
+
+[app_proxy]
+url = "https://tiny-duo-expertise-factory.trycloudflare.com"
+subpath = "regional-sync-api"
+prefix = "apps"

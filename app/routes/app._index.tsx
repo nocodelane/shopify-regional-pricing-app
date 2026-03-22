@@ -18,16 +18,19 @@ import {
   TextField,
   Checkbox,
   Icon,
+  Select,
+  Banner,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import crypto from "node:crypto";
+import { encrypt } from "../utils/encryption.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
   
-  const [regions, totalSearches, matchedSearches, waitlistCount, unmatchedSearches] = await Promise.all([
+  const [regions, totalSearches, matchedSearches, waitlistCount, unmatchedSearches, llmConfigRecord] = await Promise.all([
     prisma.region.findMany({
       where: { shop },
       include: { _count: { select: { pincodes: true } } }
@@ -41,7 +44,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       _count: { pincode: true },
       orderBy: { _count: { pincode: 'desc' } },
       take: 3,
-    })
+    }),
+    prisma.lLMConfig.findUnique({ where: { shop } })
   ]);
 
   const coverageRatio = totalSearches > 0 ? (matchedSearches / totalSearches) * 100 : 0;
@@ -74,6 +78,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     regions, 
     shop,
     config: normalizedConfig,
+    llmConfig: {
+        provider: (llmConfigRecord as any)?.provider || "openai",
+        modelId: (llmConfigRecord as any)?.modelId || "gpt-4o",
+        baseUrl: (llmConfigRecord as any)?.baseUrl || "",
+        hasKey: !!llmConfigRecord?.apiKeyEncrypted,
+        enabled: !!llmConfigRecord?.enabled
+    },
     stats: {
       totalSearches,
       coverageRatio: coverageRatio.toFixed(1),
@@ -113,6 +124,46 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ success: true });
   }
 
+  if (intent === "save-llm-config") {
+    const provider = formData.get("provider") as string;
+    const modelId = formData.get("modelId") as string;
+    const baseUrl = formData.get("baseUrl") as string;
+    const apiKey = formData.get("apiKey") as string;
+    const enabled = formData.get("enabled") === "true";
+
+    const updateData: any = {
+      provider,
+      modelId,
+      baseUrl,
+      enabled,
+      updatedAt: new Date(),
+    };
+
+    if (apiKey && apiKey !== "********") {
+      const { iv, encryptedData } = encrypt(apiKey);
+      updateData.apiKeyEncrypted = encryptedData;
+      updateData.encryptionIV = iv;
+    }
+
+    await (prisma as any).lLMConfig.upsert({
+      where: { shop: session.shop },
+      update: updateData,
+      create: { 
+        ...updateData, 
+        shop: session.shop, 
+        id: crypto.randomUUID(),
+        createdAt: new Date()
+      }
+    });
+
+    // Also update aiFeaturesActive if enabling
+    if (enabled) {
+        await prisma.$executeRawUnsafe(`UPDATE AppConfig SET aiFeaturesActive = 1 WHERE shop = ?`, session.shop);
+    }
+
+    return json({ success: true });
+  }
+
   if (intent === "create") {
     const name = formData.get("name") as string;
     await prisma.region.create({
@@ -132,8 +183,15 @@ import {
   PersonIcon,
   FlagIcon,
   PlusIcon,
-  SettingsIcon,
+  DeleteIcon,
   EditIcon,
+  RefreshIcon,
+  AdjustIcon,
+  PaintBrushFlatIcon,
+  AutomationIcon,
+  ChartVerticalIcon,
+  MagicIcon,
+  SettingsIcon,
 } from "@shopify/polaris-icons";
 
 export default function Index() {
@@ -142,7 +200,11 @@ export default function Index() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [newRegionName, setNewRegionName] = useState("");
+  const { llmConfig } = useLoaderData<typeof loader>() as any;
+  const [aiConfig, setAIConfig] = useState(llmConfig);
+  const [apiKeyInput, setApiKeyInput] = useState(llmConfig.hasKey ? "********" : "");
 
   const toggleFeature = (feature: string, current: boolean) => {
     fetcher.submit({ intent: "toggle-feature", feature, value: (!current).toString() }, { method: "POST" });
@@ -186,9 +248,12 @@ export default function Index() {
                 </InlineStack>
                 <InlineStack gap="200" blockAlign="center">
                    <Text variant="bodySm" as="span">Sync: <Badge size="small">Optimized</Badge></Text>
-                   <Text variant="bodySm" as="span">AI: <Badge size="small">{config.aiFeaturesActive ? "Ready" : "Disabled"}</Badge></Text>
+                    <Text variant="bodySm" as="span">AI: <Badge size="small">{config.aiFeaturesActive ? "Ready" : "Disabled"}</Badge></Text>
                 </InlineStack>
-                <Button variant="tertiary" size="slim" url="/app/config" icon={SettingsIcon}>Regional Components</Button>
+                <InlineStack gap="200">
+                    <Button variant="tertiary" size="slim" onClick={() => setIsAIModalOpen(true)} icon={MagicIcon}>Configure AI</Button>
+                    <Button variant="tertiary" size="slim" url="/app/config" icon={SettingsIcon}>Regional Components</Button>
+                </InlineStack>
               </BlockStack>
             </Card>
           </Grid.Cell>
@@ -278,11 +343,15 @@ export default function Index() {
                      <Text variant="headingMd" as="h2">Feature Center</Text>
                      <Button variant="plain" onClick={() => navigate("/app/config")}>Advanced</Button>
                   </InlineStack>
-                  <InlineStack align="space-between" gap="200">
-                      <Button icon={PlusIcon} fullWidth onClick={() => navigate("/app/logic")}>Logic Hub</Button>
-                      <Button fullWidth onClick={() => navigate("/app/pincodes")}>Coverage</Button>
-                  </InlineStack>
-                  <Button fullWidth onClick={() => navigate("/app/rules")}>Tag Automation</Button>
+                  <BlockStack gap="200">
+                    <Button fullWidth icon={LocationIcon} url="/app/pincodes">Coverage Hub</Button>
+                    <Button fullWidth icon={AdjustIcon} url="/app/logic">Regional Logic</Button>
+                    <Button fullWidth icon={PaintBrushFlatIcon} url="/app/modal-customize">Experience Studio</Button>
+                    <Button fullWidth icon={AutomationIcon} url="/app/rules">Tag Automation</Button>
+                    <Divider />
+                    <Button fullWidth icon={ChartVerticalIcon} url="/app/ab-testing" tone="success">A/B Testing Hub</Button>
+                    <Button fullWidth icon={PersonIcon} url="/app/waitlist" tone="success">Waitlist Hub</Button>
+                  </BlockStack>
                   <BlockStack gap="200">
                     <InlineStack align="space-between" blockAlign="center">
                       <Text variant="bodyMd" as="span">Regional Pricing</Text>
@@ -342,6 +411,70 @@ export default function Index() {
       >
         <Modal.Section>
           <TextField label="Region Name" value={newRegionName} onChange={setNewRegionName} autoComplete="off" placeholder="e.g., North India" />
+        </Modal.Section>
+      </Modal>
+
+      {/* AI Configuration Modal */}
+      <Modal
+        open={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        title="AI Intelligence Configuration"
+        primaryAction={{
+          content: 'Save AI Config',
+          onAction: () => {
+             submit({ 
+               ...aiConfig, 
+               apiKey: apiKeyInput, 
+               intent: 'save-llm-config',
+               enabled: "true" 
+             }, { method: 'POST' });
+             setIsAIModalOpen(false);
+          },
+        }}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <Text as="p">Configure your preferred AI provider to enable smart copywriting and regional translation.</Text>
+            <Select
+              label="AI Provider"
+              options={[
+                {label: 'OpenAI (GPT-4o)', value: 'openai'},
+                {label: 'Anthropic (Claude 3.5)', value: 'anthropic'},
+                {label: 'Google (Gemini 1.5)', value: 'google'},
+                {label: 'Custom / Proxy (Ollama, LiteLLM)', value: 'custom'}
+              ]}
+              value={aiConfig.provider}
+              onChange={(v) => setAIConfig({...aiConfig, provider: v})}
+            />
+            <TextField
+              label="Model ID"
+              value={aiConfig.modelId}
+              onChange={(v) => setAIConfig({...aiConfig, modelId: v})}
+              autoComplete="off"
+              helpText={aiConfig.provider === 'openai' ? 'e.g. gpt-4o, gpt-3.5-turbo' : 'Model name/identifier for the chosen provider.'}
+            />
+            <TextField
+              label="API Key"
+              type="password"
+              value={apiKeyInput}
+              onChange={setApiKeyInput}
+              autoComplete="off"
+              placeholder={llmConfig.hasKey ? "********" : "Enter your API key"}
+            />
+            {aiConfig.provider === 'custom' && (
+              <TextField
+                label="Custom Base URL"
+                value={aiConfig.baseUrl}
+                onChange={(v) => setAIConfig({...aiConfig, baseUrl: v})}
+                autoComplete="off"
+                placeholder="https://api.yourproxy.com/v1"
+                helpText="Full URL to the API endpoint (including /v1 if needed)."
+              />
+            )}
+            <Banner tone="info">
+              <Text as="p">Your API key is encrypted using AES-256 before being stored in our database.</Text>
+            </Banner>
+          </BlockStack>
         </Modal.Section>
       </Modal>
     </Page>

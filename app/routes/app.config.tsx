@@ -60,7 +60,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     include: { region: true }
   });
 
-  return json({ components, regions, visibilityConfigs, shop });
+  const appConfig = await prisma.appConfig.findUnique({
+    where: { shop }
+  });
+  
+  return json({ components, regions, visibilityConfigs, appConfig, shop });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -142,13 +146,49 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }
         return json({ success: true });
     }
+
+    case "save_app_config": {
+        const regionalPricingActive = formData.get("regionalPricingActive") === "true";
+        const visibilityRulesActive = formData.get("visibilityRulesActive") === "true";
+        const abTestingActive = formData.get("abTestingActive") === "true";
+        const waitlistActive = formData.get("waitlistActive") === "true";
+        const pincodeGuardActive = formData.get("pincodeGuardActive") === "true";
+        const lockoutMessage = formData.get("lockoutMessage") as string;
+        const excludedPaths = formData.get("excludedPaths") as string;
+
+        await (prisma.appConfig as any).upsert({
+            where: { shop },
+            update: { 
+                regionalPricingActive, 
+                visibilityRulesActive, 
+                abTestingActive, 
+                waitlistActive, 
+                pincodeGuardActive,
+                lockoutMessage,
+                excludedPaths,
+                updatedAt: new Date() 
+            },
+            create: { 
+                shop, 
+                regionalPricingActive, 
+                visibilityRulesActive, 
+                abTestingActive, 
+                waitlistActive, 
+                pincodeGuardActive,
+                lockoutMessage,
+                excludedPaths,
+                updatedAt: new Date() 
+            }
+        });
+        return json({ success: true });
+    }
   }
 
   return json({ success: true });
 };
 
 export default function RegionalManagement() {
-  const { components, regions, visibilityConfigs, shop } = useLoaderData<typeof loader>();
+  const { components, regions, visibilityConfigs, appConfig, shop } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const shopify = useAppBridge();
   const navigation = useNavigation();
@@ -168,8 +208,9 @@ export default function RegionalManagement() {
   const [newComponentType, setNewComponentType] = useState("banner");
 
   const tabs = [
-    { id: 'components', content: 'Component Library', accessibilityLabel: 'Manage regional components' },
-    { id: 'visibility', content: 'Theme Visibility', accessibilityLabel: 'Manage theme element visibility' },
+    { id: 'components', content: 'Component Library' },
+    { id: 'visibility', content: 'Theme Visibility' },
+    { id: 'guard', content: 'Pincode Guard' },
   ];
 
   const handleCreateComponent = () => {
@@ -541,6 +582,85 @@ export default function RegionalManagement() {
     </BlockStack>
   );
 
+  const renderGuardSection = () => {
+    const config = (appConfig as any) || {
+        pincodeGuardActive: false,
+        lockoutMessage: "We don't serve your area yet.",
+        excludedPaths: "/pages/contact, /pages/about"
+    };
+
+    return (
+        <BlockStack gap="400">
+            <Banner tone="warning" title="Pincode Gatekeeping">
+                <p>When active, PinCode Guard restricts access to your entire storefront until a valid pincode is provided. Ideal for hyper-local delivery services.</p>
+            </Banner>
+            <Card>
+                <BlockStack gap="400">
+                    <Text variant="headingMd" as="h2">Gatekeeper Settings</Text>
+                    <Box paddingBlockStart="200">
+                        <BlockStack gap="400">
+                            <Select
+                                label="Status"
+                                options={[
+                                    { label: 'Disabled (Public Access)', value: 'false' },
+                                    { label: 'Enabled (Pincode Wall Active)', value: 'true' }
+                                ]}
+                                value={String(config.pincodeGuardActive)}
+                                onChange={(v) => fetcher.submit({ 
+                                    intent: 'save_app_config', 
+                                    pincodeGuardActive: v,
+                                    lockoutMessage: config.lockoutMessage || "",
+                                    excludedPaths: config.excludedPaths || "",
+                                    regionalPricingActive: String(config.regionalPricingActive ?? true),
+                                    visibilityRulesActive: String(config.visibilityRulesActive ?? true),
+                                    abTestingActive: String(config.abTestingActive ?? false),
+                                    waitlistActive: String(config.waitlistActive ?? true)
+                                }, { method: 'POST' })}
+                            />
+                            {config.pincodeGuardActive && (
+                                <>
+                                    <TextField
+                                        label="Lockout Modal Message"
+                                        value={config.lockoutMessage || ""}
+                                        autoComplete="off"
+                                        onChange={(v) => fetcher.submit({ 
+                                            intent: 'save_app_config', 
+                                            pincodeGuardActive: 'true',
+                                            lockoutMessage: v,
+                                            excludedPaths: config.excludedPaths || "",
+                                            regionalPricingActive: String(config.regionalPricingActive ?? true),
+                                            visibilityRulesActive: String(config.visibilityRulesActive ?? true),
+                                            abTestingActive: String(config.abTestingActive ?? false),
+                                            waitlistActive: String(config.waitlistActive ?? true)
+                                        }, { method: 'POST' })}
+                                        helpText="Message shown when a user enters an unserved pincode."
+                                    />
+                                    <TextField
+                                        label="Excluded URL Paths"
+                                        value={config.excludedPaths || ""}
+                                        autoComplete="off"
+                                        onChange={(v) => fetcher.submit({ 
+                                            intent: 'save_app_config', 
+                                            pincodeGuardActive: 'true',
+                                            lockoutMessage: config.lockoutMessage || "",
+                                            excludedPaths: v,
+                                            regionalPricingActive: String(config.regionalPricingActive ?? true),
+                                            visibilityRulesActive: String(config.visibilityRulesActive ?? true),
+                                            abTestingActive: String(config.abTestingActive ?? false),
+                                            waitlistActive: String(config.waitlistActive ?? true)
+                                        }, { method: 'POST' })}
+                                        helpText="Comma-separated paths to keep public (e.g., /pages/contact, /policies/privacy)."
+                                    />
+                                </>
+                            )}
+                        </BlockStack>
+                    </Box>
+                </BlockStack>
+            </Card>
+        </BlockStack>
+    );
+  };
+
   if (isStudioOpen) return renderStudio();
 
   return (
@@ -556,7 +676,7 @@ export default function RegionalManagement() {
           <Card padding="0">
             <Tabs tabs={tabs} selected={selectedTab} onSelect={setSelectedTab}>
                 <Box padding="400">
-                    {selectedTab === 0 ? renderComponentList() : renderVisibilitySection()}
+                    {selectedTab === 0 ? renderComponentList() : selectedTab === 1 ? renderVisibilitySection() : renderGuardSection()}
                 </Box>
             </Tabs>
           </Card>

@@ -209,6 +209,10 @@ model ModalConfig {
   triggerBorderColor     String   @default("#000000")
   usePulse               Boolean  @default(false)
   useGlassmorphism       Boolean  @default(false)
+  showOnAnyPage          Boolean  @default(true)
+  disableScroll          Boolean  @default(true)
+  overlayColor           String   @default("rgba(0,0,0,0.6)")
+  overlayBlur            String   @default("8px")
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
@@ -238,6 +242,8 @@ model LLMConfig {
   id                String   @id @default(uuid())
   shop              String   @unique
   provider          String   @default("openai")
+  modelId           String?  @default("gpt-4o")
+  baseUrl           String?
   apiKeyEncrypted   String?
   encryptionIV      String?
   enabled           Boolean  @default(false)
@@ -259,6 +265,8 @@ model AppConfig {
   flashSalesActive      Boolean  @default(true)
   pincodeGuardActive    Boolean  @default(false)
   allowAbsurdPricing    Boolean  @default(false)
+  lockoutMessage        String?  @default("We don't serve your area yet.")
+  excludedPaths         String?  @default("/pages/contact, /pages/about")
   updatedAt             DateTime @updatedAt
 }
 

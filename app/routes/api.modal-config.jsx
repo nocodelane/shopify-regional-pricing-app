@@ -1,6 +1,5 @@
 import { json } from "@remix-run/node";
 import prisma from "../db.server";
-
 import { authenticate } from "../shopify.server";
 
 export async function loader({ request }) {
@@ -9,7 +8,7 @@ export async function loader({ request }) {
     const auth = await authenticate.public.appProxy(request);
     session = auth.session;
   } catch (e) {
-    console.error("App Proxy Authentication Failed in Modal Config:", e?.message);
+    console.error("App Proxy Authentication Failed:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
     return json({ error: "Invalid proxy signature" }, { status: 401 });
   }
 
@@ -21,6 +20,10 @@ export async function loader({ request }) {
 
   try {
     const config = await prisma.modalConfig.findUnique({
+        where: { shop }
+    });
+
+    const appConfig = await prisma.appConfig.findUnique({
         where: { shop }
     });
     
@@ -37,6 +40,10 @@ export async function loader({ request }) {
         triggerTransparent: config.triggerTransparent === true,
         usePulse: config.usePulse === true,
         useGlassmorphism: config.useGlassmorphism === true,
+        showOnAnyPage: config.showOnAnyPage !== false,
+        disableScroll: config.disableScroll !== false,
+        overlayColor: config.overlayColor || "rgba(0,0,0,0.6)",
+        overlayBlur: config.overlayBlur || "8px",
         
         // Ensure strings have valid defaults for storefront
         triggerBackgroundColor: config.triggerBackgroundColor || "#000000",
@@ -51,12 +58,15 @@ export async function loader({ request }) {
         triggerBorderWidth: config.triggerBorderWidth || "1px",
         triggerBorderColor: config.triggerBorderColor || "#000000",
         pincodePrefixText: config.pincodePrefixText || "Delivering to: ",
+        
+        // Pincode Guard (from AppConfig)
+        pincodeGuardActive: appConfig?.pincodeGuardActive === true,
+        excludedPaths: appConfig?.excludedPaths || "",
+        lockoutMessage: appConfig?.lockoutMessage || "Delivery not available in this area yet."
     };
 
-    return json(safeConfig);
-
   } catch (error) {
-    console.error("Error fetching modal config:", error);
+    console.error("Critical Error in Modal Config API:", error);
     return json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

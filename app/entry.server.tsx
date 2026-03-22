@@ -16,7 +16,11 @@ export default async function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  addDocumentResponseHeaders(request, responseHeaders);
+  try {
+    addDocumentResponseHeaders(request, responseHeaders);
+  } catch (error: any) {
+    console.warn("[EntryServer] Failed to add response headers:", error?.message);
+  }
   const userAgent = request.headers.get("user-agent");
   const callbackName = isbot(userAgent ?? '')
     ? "onAllReady"

@@ -277,7 +277,7 @@ export default function Analytics() {
                     <BlockStack gap="400">
                       <InlineStack align="space-between">
                         <Text variant="headingMd" as="h2">Leads by Requested Pincodes</Text>
-                        <Badge tone="info">{`${recentWaitlist.length} Recent Captures`}</Badge>
+                        <Button variant="plain" onClick={() => navigate("/app/waitlist")}>Manage Waitlist Hub</Button>
                       </InlineStack>
                       <Text as="p" tone="subdued">Customers in these areas are waiting for your service. Expansion here has pre-validated demand.</Text>
                       <IndexTable
@@ -317,6 +317,7 @@ export default function Analytics() {
                     <BlockStack gap="400">
                       <InlineStack align="space-between">
                         <Text variant="headingMd" as="h2">Active Experiments</Text>
+                        <Button variant="plain" onClick={() => navigate("/app/ab-testing")}>Manage A/B Tests</Button>
                       </InlineStack>
                       <IndexTable
                         resourceName={{ singular: 'test', plural: 'tests' }}

@@ -102,6 +102,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ success: true });
   }
 
+  const safeParseDate = (val: any) => {
+    if (!val || val === "null" || val === "" || val === "undefined") return null;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   // Pricing Rule Persistence
   if (intent === "pricing-save") {
     const id = (formData.get("id") as string) || crypto.randomUUID();
@@ -112,8 +118,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const collectionHandle = formData.get("collectionHandle") || null;
     const productId = formData.get("productId") || null;
     const productHandle = formData.get("productHandle") || null;
-    const startTime = formData.get("startTime") ? new Date(formData.get("startTime") as string) : null;
-    const endTime = formData.get("endTime") ? new Date(formData.get("endTime") as string) : null;
+    const startTime = safeParseDate(formData.get("startTime"));
+    const endTime = safeParseDate(formData.get("endTime"));
 
     const data = {
         shop,
@@ -506,8 +512,8 @@ export default function RegionalLogic() {
                     <Divider />
                     <Text variant="headingSm" as="h3">Schedule (Optional)</Text>
                     <InlineStack gap="400">
-                         <Box width="100%"><TextField label="Start Time" type="datetime-local" value={editingPricing.startTime ? new Date(editingPricing.startTime).toISOString().slice(0, 16) : ""} onChange={(v) => setEditingPricing((p: any) => ({ ...p, startTime: v }))} autoComplete="off" /></Box>
-                         <Box width="100%"><TextField label="End Time" type="datetime-local" value={editingPricing.endTime ? new Date(editingPricing.endTime).toISOString().slice(0, 16) : ""} onChange={(v) => setEditingPricing((p: any) => ({ ...p, endTime: v }))} autoComplete="off" /></Box>
+                         <Box width="100%"><TextField label="Start Time" type="datetime-local" value={editingPricing.startTime && !isNaN(new Date(editingPricing.startTime).getTime()) ? new Date(editingPricing.startTime).toISOString().slice(0, 16) : ""} onChange={(v) => setEditingPricing((p: any) => ({ ...p, startTime: v }))} autoComplete="off" /></Box>
+                         <Box width="100%"><TextField label="End Time" type="datetime-local" value={editingPricing.endTime && !isNaN(new Date(editingPricing.endTime).getTime()) ? new Date(editingPricing.endTime).toISOString().slice(0, 16) : ""} onChange={(v) => setEditingPricing((p: any) => ({ ...p, endTime: v }))} autoComplete="off" /></Box>
                     </InlineStack>
                 </BlockStack>
             </Modal.Section>

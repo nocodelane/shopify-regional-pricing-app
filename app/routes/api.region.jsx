@@ -11,7 +11,7 @@ export async function loader({ request }) {
     session = auth.session;
   } catch (e) {
     console.error("App Proxy Authentication Failed:", e.message);
-    return json({ error: "Invalid proxy signature or session" }, { status: 401 });
+    return json({ error: "Invalid proxy signature", details: e.message }, { status: 401 });
   }
 
   const url = new URL(request.url);
@@ -93,16 +93,19 @@ export async function loader({ request }) {
       data: { shop, pincode, matched: false }
     }).catch(e => console.error("Search log error:", e));
 
+    const appConfig = await prisma.appConfig.findUnique({ where: { shop } });
+
     // 2. If no match, return a default/fallback state
     return json({
+      matched: false,
       region: "default",
       regionId: null,
       priceMultiplier: 1.0,
-      message: "Delivery not available in this area yet."
+      message: appConfig?.lockoutMessage || "Delivery not available in this area yet."
     }, { status: 200 });
 
   } catch (error) {
     console.error("Critical Error in Region API:", error);
-    return json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+    return json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
