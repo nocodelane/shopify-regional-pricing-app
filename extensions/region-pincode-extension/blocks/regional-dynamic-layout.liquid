@@ -105,6 +105,7 @@
             const textColor = settings.textColor || '#ffffff';
             const overlayOpacity = settings.overlayOpacity || '40';
             const bgColor = settings.overlayColor || '#000000';
+            const fit = settings.imageFit || 'cover';
             
             const btnBg = settings.buttonBg || '#ffffff';
             const btnText = settings.buttonTextColor || '#000000';
@@ -117,6 +118,7 @@
             const inlineStyle = `
                 aspect-ratio: ${mr};
                 ${mh !== 'adapt' ? `height: ${mh};` : ''}
+                background: ${settings.backgroundColor || 'transparent'};
             `;
             const desktopStyle = `
                 @media (min-width: 768px) {
@@ -132,7 +134,7 @@
                 <a href="${settings.buttonLink || '#'}" id="banner-dyn-${blockId}" class="dynamic-banner-rendered" style="${inlineStyle}">
                     <picture style="display:block; height:100%; width:100%;">
                         ${settings.mobileImageUrl ? `<source media="(max-width: 767px)" srcset="${settings.mobileImageUrl}">` : ''}
-                        <img src="${settings.imageUrl || 'https://placehold.co/1200x470?text=Offer'}" />
+                        <img src="${settings.imageUrl || 'https://placehold.co/1200x470?text=Offer'}" style="object-fit: ${fit};" />
                     </picture>
                     <div class="dynamic-banner-bg" style="background: ${bgColor}; opacity: ${parseInt(overlayOpacity)/100};"></div>
                     <div class="dynamic-banner-overlay" style="justify-content: ${align}; align-items: ${align}; text-align: center; color: ${textColor};">
@@ -147,7 +149,83 @@
             <div style="margin-bottom:20px; padding:40px 20px; background:${settings.backgroundColor || '#f4f4f4'}; color:${settings.textColor || '#1a1a1a'}; border-radius:12px; text-align:${settings.alignment || 'center'}; max-width: 800px; margin: 0 auto 20px auto;">
                 ${settings.title ? `<h2 style="margin-bottom:15px; font-weight:700;">${settings.title}</h2>` : ''}
                 ${settings.content ? `<div style="font-size:1.1rem; opacity:0.9; line-height:1.6;">${settings.content}</div>` : ''}
-            </div>`
+            </div>`,
+        counter: (settings) => {
+            const end = new Date(settings.endDate || Date.now() + 86400000).getTime();
+            const id = 'timer-' + Math.random().toString(36).substr(2, 9);
+            const color = settings.primaryColor || '#000000';
+            const bg = settings.backgroundColor || '#ffffff';
+            
+            setTimeout(() => {
+                const clock = document.getElementById(id); if(!clock) return;
+                const update = () => {
+                    const now = new Date().getTime();
+                    const diff = end - now;
+                    if(diff <= 0) { clock.innerHTML = "EXPIRES"; return; }
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    clock.querySelector('.d').innerText = d; 
+                    clock.querySelector('.h').innerText = h.toString().padStart(2, '0');
+                    clock.querySelector('.m').innerText = m.toString().padStart(2, '0');
+                    clock.querySelector('.s').innerText = s.toString().padStart(2, '0');
+                };
+                update(); setInterval(update, 1000);
+            }, 100);
+
+            return `
+                <div class="dynamic-timer-card" style="background: ${bg}; border: 1px solid #eee; border-radius: 12px; padding: 30px; margin-bottom: 20px; text-align: center;">
+                    ${settings.title ? `<h3 style="margin: 0 0 15px 0; font-weight: 700; color:${color};">${settings.title}</h3>` : ''}
+                    <div id="${id}" class="dynamic-clock" style="display: flex; gap: 15px; justify-content: center; font-weight: 800; color: ${color};">
+                        <div class="unit"> <span class="d">0</span> <small style="display:block; font-size:10px; opacity:0.6; font-weight:400;">DAYS</small> </div>
+                        <div class="unit"> <span class="h">00</span> <small style="display:block; font-size:10px; opacity:0.6; font-weight:400;">HRS</small> </div>
+                        <div class="unit"> <span class="m">00</span> <small style="display:block; font-size:10px; opacity:0.6; font-weight:400;">MINS</small> </div>
+                        <div class="unit"> <span class="s">00</span> <small style="display:block; font-size:10px; opacity:0.6; font-weight:400;">SECS</small> </div>
+                    </div>
+                </div>
+            `;
+        },
+        products: (settings) => {
+            const products = settings.products || [];
+            if (products.length === 0) return '';
+            return `
+                <div style="margin-bottom: 30px;">
+                    ${settings.title ? `<h2 style="margin-bottom: 20px; font-weight: 700;">${settings.title}</h2>` : ''}
+                    <div class="dynamic-product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
+                        ${products.map(p => `
+                            <a href="/products/${p.handle}" class="dynamic-product-card" style="text-decoration: none; color: inherit;">
+                                <div style="aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: #f4f4f4; margin-bottom: 10px;">
+                                    <img src="${p.imageUrl || 'https://placehold.co/400x400'}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${p.title}</div>
+                                <div style="opacity: 0.7; font-size: 14px;">${p.price || ''}</div>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        },
+        custom_liquid: (settings) => {
+            return `<div class="dynamic-custom-liquid">${settings.code || ''}</div>`;
+        },
+        pincode_widget: (settings) => {
+            const pincode = localStorage.getItem("lastCheckedPincode") || "--";
+            const style = settings.style || 'standard';
+            const fontSize = settings.fontSize || '14px';
+            const iconColor = settings.iconColor || '#000000';
+            const message = settings.message || 'Regional Delivery';
+
+            return `
+                <div class="pincode-widget-container style-${style}" style="--widget-font-size: ${fontSize}; --widget-text-color: ${iconColor};" data-open-pincode-modal>
+                    <div class="pincode-widget-message">${message}</div>
+                    <div class="pincode-widget-details">
+                        <span>${pincode}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </div>
+                </div>
+            `;
+        }
     };
 
     const init = async () => {

@@ -427,7 +427,48 @@ export default function RegionalManagement() {
                                     <TextField label="Internal Handle" value={editingComponent.name} onChange={(v) => setEditingComponent({ ...editingComponent, name: v })} autoComplete="off" helpText="Used to identify this component in your library." />
                                 )}
 
-                                        {editingComponent.type === 'banner' && (
+                                        {editingComponent.type === 'pincode_widget' && (
+                                    <BlockStack gap="400">
+                                        <TextField 
+                                            label="Regional Message" 
+                                            value={activeSettings.message || ''} 
+                                            onChange={(v) => updateActiveSettings('message', v)} 
+                                            autoComplete="off" 
+                                            placeholder="e.g. Free Delivery in Mumbai!"
+                                            helpText="This message will change based on the customer's region."
+                                        />
+                                        <Select
+                                            label="Display Style"
+                                            options={[
+                                                { label: 'Minimal (Text only)', value: 'minimal' },
+                                                { label: 'Standard (Two lines)', value: 'standard' },
+                                                { label: 'Pill (Compact)', value: 'pill' }
+                                            ]}
+                                            value={activeSettings.style || 'standard'}
+                                            onChange={(v) => updateActiveSettings('style', v)}
+                                        />
+                                        <InlineStack gap="400">
+                                            <Box width="50%">
+                                                <TextField 
+                                                    label="Text Font Size" 
+                                                    value={activeSettings.fontSize || '14px'} 
+                                                    onChange={(v) => updateActiveSettings('fontSize', v)} 
+                                                    autoComplete="off" 
+                                                />
+                                            </Box>
+                                            <Box width="50%">
+                                                <TextField 
+                                                    label="Icon Color" 
+                                                    value={activeSettings.iconColor || '#000000'} 
+                                                    onChange={(v) => updateActiveSettings('iconColor', v)} 
+                                                    autoComplete="off" 
+                                                />
+                                            </Box>
+                                        </InlineStack>
+                                    </BlockStack>
+                                )}
+
+                                {editingComponent.type === 'banner' && (
                                             <BlockStack gap="400">
                                                 <TextField label="Banner Heading" value={activeSettings.title} onChange={(v) => updateActiveSettings('title', v)} autoComplete="off" />
                                                 <TextField label="Button Label" value={activeSettings.buttonText} onChange={(v) => updateActiveSettings('buttonText', v)} autoComplete="off" />
@@ -461,6 +502,21 @@ export default function RegionalManagement() {
                                     </BlockStack>
                                 )}
 
+                                {editingComponent.type === 'custom_liquid' && (
+                                    <BlockStack gap="400">
+                                        <Banner tone="warning" title="Expert Feature">
+                                            <p>Use this to inject raw HTML or Liquid. Great for theme-native snippets or custom scripts.</p>
+                                        </Banner>
+                                        <TextField 
+                                            label="Liquid / HTML Code" 
+                                            value={activeSettings.code || ''} 
+                                            onChange={(v) => updateActiveSettings('code', v)} 
+                                            autoComplete="off" 
+                                            multiline={10}
+                                            placeholder="<div>Hello {{ region_name }}</div>"
+                                        />
+                                    </BlockStack>
+                                )}
                                 <Divider />
                                 <Box padding="400" background="bg-surface-secondary">
                                     <Text variant="headingSm" as="h3">Container Sizing (CLS Optimization)</Text>
@@ -692,13 +748,15 @@ export default function RegionalManagement() {
       >
         <Modal.Section>
           <BlockStack gap="400">
-            <TextField label="Component Name" value={newComponentName} onChange={setNewComponentName} autoComplete="off" placeholder="e.g. Summer Hero Banner" />
+            <TextField label="Component Name" value={newComponentName} onChange={setNewComponentName} autoComplete="off" placeholder="e.g. Mumbai Delivery Banner" />
             <Select
               label="Component Type"
               options={[
                 { label: 'Image Banner', value: 'banner' },
+                { label: 'Pincode & Delivery Widget', value: 'pincode_widget' },
                 { label: 'Countdown Timer', value: 'counter' },
-                { label: 'Featured Products', value: 'products' }
+                { label: 'Featured Products', value: 'products' },
+                { label: 'Custom Liquid / HTML', value: 'custom_liquid' }
               ]}
               value={newComponentType}
               onChange={setNewComponentType}

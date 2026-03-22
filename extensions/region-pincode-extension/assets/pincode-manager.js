@@ -411,6 +411,61 @@
                     toggleScroll(false);
                 }
             }
+        }); // End click listener
+
+        // --- Dynamic Component & Widget Rendering ---
+        const WidgetRenderer = {
+            pincode_widget: (settings) => {
+                const pincode = getStored("lastCheckedPincode") || "--";
+                const style = settings.style || 'standard';
+                const fontSize = settings.fontSize || '14px';
+                const iconColor = settings.iconColor || '#000000';
+                const message = settings.message || 'Regional Delivery';
+
+                return `
+                    <div class="pincode-widget-container style-${style}" style="--widget-font-size: ${fontSize}; --widget-text-color: ${iconColor};" data-open-pincode-modal>
+                        <div class="pincode-widget-message">${message}</div>
+                        <div class="pincode-widget-details">
+                            <span>${pincode}</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        async function initRegionalWidgets() {
+            const widgets = document.querySelectorAll('.regional-pincode-widget-block');
+            if (widgets.length === 0) return;
+
+            const regionId = getStored("regionId");
+            if (!regionId) return;
+
+            try {
+                const resp = await fetch(`/apps/regional-sync-api/api/region-config?region=${regionId}&shop=${shop}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                
+                widgets.forEach(w => {
+                    const id = w.getAttribute('data-component-id');
+                    if (!id || id === "") return; // Skip universal widgets
+                    
+                    const section = data.homepage?.sections?.find(s => s.id === id);
+                    if (section && WidgetRenderer[section.type]) {
+                        w.querySelector('.regional-widget-content').innerHTML = WidgetRenderer[section.type](section.settings);
+                    }
+                });
+            } catch (e) {
+                console.error("[Pincode] Widget init error:", e);
+            }
+        }
+
+        initRegionalWidgets();
+        
+        // Update any fallback pincode displays
+        const currentPincode = getStored("lastCheckedPincode") || "--";
+        document.querySelectorAll('.pincode-display').forEach(el => {
+            el.innerText = currentPincode;
         });
-    });
+    }); // End DOMContentLoaded (line 52)
 })();

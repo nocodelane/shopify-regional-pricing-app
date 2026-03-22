@@ -1,0 +1,57 @@
+<div 
+  class="regional-visibility-guard" 
+  data-target-region="{{ block.settings.target_region | escape }}"
+  data-invert="{{ block.settings.invert_logic | default: false }}"
+  style="display: none !important;"
+></div>
+
+<script>
+(function() {
+  function gC(n) { var v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)'); return v ? v[2] : null; }
+  var rN = gC("regionName") || localStorage.getItem("regionName");
+  var target = "{{ block.settings.target_region | escape }}";
+  var invert = {{ block.settings.invert_logic | default: false }};
+  
+  if (!target || !rN) return;
+
+  var match = false;
+  var targets = target.split(',').map(function(t) { return t.trim().toLowerCase(); });
+  match = targets.some(function(t) { return rN.toLowerCase().includes(t); });
+
+  var shouldHide = invert ? match : !match;
+  
+  if (shouldHide) {
+    // Zero-Flicker: Inject style IMMEDIATELY via document.write
+    // This blocks the parser and ensures the next section is hidden before it renders.
+    var css = '#shopify-section-{{ section.id }} + .shopify-section { display: none !important; }\n';
+    css += '#shopify-section-{{ section.id }} { display: none !important; }';
+    document.write('<style id="pincode-guard-{{ section.id }}">' + css + '</style>');
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Regional Visibility Guard",
+  "target": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "🛡️ **How to Use:** Place this block directly **ABOVE** any theme section (e.g. Featured Collection, Image Banner) that you want to show/hide based on region."
+    },
+    {
+      "type": "text",
+      "id": "target_region",
+      "label": "Target Region(s)",
+      "info": "Enter Region Names separated by commas (e.g. 'United States, Canada').",
+      "default": "India"
+    },
+    {
+      "type": "checkbox",
+      "id": "invert_logic",
+      "label": "Invert Logic (Hide for these regions)",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

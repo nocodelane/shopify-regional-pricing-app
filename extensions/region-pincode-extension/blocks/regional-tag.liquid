@@ -1,0 +1,32 @@
+<div 
+  class="regional-tag-marker" 
+  data-target-region="{{ block.settings.target_region | escape }}"
+  data-invert="{{ block.settings.invert_logic | default: false }}"
+  style="display: none !important;"
+></div>
+
+{% schema %}
+{
+  "name": "Regional Visibility Tag",
+  "target": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "📍 **Easy Mode:** Add this block *inside* any section (Image Banner, Featured Collection, etc.) to control its visibility based on region."
+    },
+    {
+      "type": "text",
+      "id": "target_region",
+      "label": "Show only for Region",
+      "placeholder": "Mumbai, Delhi",
+      "default": "India"
+    },
+    {
+      "type": "checkbox",
+      "id": "invert_logic",
+      "label": "Invert Logic (Hide for these regions)",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

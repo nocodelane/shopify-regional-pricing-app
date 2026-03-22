@@ -231,16 +231,43 @@
   var rId = gC("regionId") || localStorage.getItem("regionId");
   var rName = gC("regionName") || localStorage.getItem("regionName");
 
-  // Synchronous filtering for Theme-Native Regional Blocks
-  // We use :has() selector to also hide any .shopify-app-block wrappers that inject arbitrary margins
-  var blockCss = '[data-target-region]:not([data-target-region=""]) { display: none !important; }\n';
-  blockCss += '.shopify-app-block:has(> [data-target-region]:not([data-target-region=""])) { display: none !important; margin: 0 !important; padding: 0 !important; }';
-  
+  // Universal Regional Class Hider (The 'Easier Way')
+  // Allows merchants to add 'region-show-india' or 'region-hide-usa' to any section's CSS class
+  var universalCss = '';
   if (rName) {
-      blockCss = '[data-target-region]:not([data-target-region=""]):not([data-target-region*="' + rName + '" i]) { display: none !important; }\n';
-      blockCss += '.shopify-app-block:has(> [data-target-region]:not([data-target-region=""]):not([data-target-region*="' + rName + '" i])) { display: none !important; margin: 0 !important; padding: 0 !important; }';
+    var sanitizedRegion = rName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    // Hide all show-only sections that DON'T match the current region
+    universalCss += '[class*="region-show-"]:not(.region-show-' + sanitizedRegion + ') { display: none !important; }\n';
+    // Hide all hide-only sections that DO match the current region
+    universalCss += '.region-hide-' + sanitizedRegion + ' { display: none !important; }\n';
+  } else {
+    // If no region is set, hide all 'show-only' sections to be safe (or show them if user prefers fallback)
+    universalCss += '[class*="region-show-"] { display: none !important; }\n';
   }
-  document.write('<style id="pincode-native-blocks">' + blockCss + '</style>');
+
+  // Synchronous filtering for Theme-Native Regional Blocks & Tags
+  // We use :has() selector to hide the ENTIRE SECTION if it contains our Regional Tag or data attribute
+  var blockCss = universalCss;
+  
+  // Base case: Hide all sections that have a target set but no region cookie yet
+  blockCss += '.shopify-section:has([data-target-region]:not([data-target-region=""])) { display: none !important; }\n';
+
+  if (rName) {
+      var rLower = rName.toLowerCase();
+      // Reset: Hide all sections that HAVE a tag, but the tag's region doesn't match the current one
+      // We use a CSS selector that matches the attribute but ignores case
+      blockCss = universalCss;
+      
+      // Hide sections where target-region is NOT the current one (using :not([attr*="..."]))
+      blockCss += '.shopify-section:has(.regional-tag-marker[data-target-region]:not([data-target-region*="' + rName + '" i]):not([data-invert="true"])) { display: none !important; }\n';
+      // Handle INVERT logic (Hide if it DOES match and invert is true)
+      blockCss += '.shopify-section:has(.regional-tag-marker[data-target-region*="' + rName + '" i][data-invert="true"]) { display: none !important; }\n';
+      
+      // Also support the legacy [data-target-region] attribute on sections
+      blockCss += '[data-target-region]:not([data-target-region=""]):not([data-target-region*="' + rName + '" i]) { display: none !important; }\n';
+  }
+  
+  document.write('<style id="pincode-universal-hider">' + blockCss + '</style>');
 
   if (!rId) return;
 
