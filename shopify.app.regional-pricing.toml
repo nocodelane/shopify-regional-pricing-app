@@ -6,9 +6,11 @@ application_url = "https://racing-admissions-onion-thousand.trycloudflare.com"
 embedded = true
 
 [build]
-automatically_update_urls_on_dev = true
+automatically_update_urls_on_dev = false
 
 [webhooks]
+# CRITICAL: DO NOT change this to a future date (like 2026-04) until Shopify officially releases it.
+# Using a future date will cause "Failed to start dev preview" to crash without an error.
 api_version = "2025-01"
 
 [access_scopes]
