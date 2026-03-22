@@ -34,9 +34,9 @@ export async function loader({ request }) {
     // SQLite Booleans and Defaults Mapping
     const safeConfig = {
         ...config,
-        showFloatingButton: config.showFloatingButton === true,
-        showCurrentPincode: config.showCurrentPincode === true,
-        showLocationIcon: config.showLocationIcon === true,
+        showFloatingButton: config.showFloatingButton !== false,
+        showCurrentPincode: config.showCurrentPincode !== false,
+        showLocationIcon: config.showLocationIcon !== false,
         triggerTransparent: config.triggerTransparent === true,
         usePulse: config.usePulse === true,
         useGlassmorphism: config.useGlassmorphism === true,

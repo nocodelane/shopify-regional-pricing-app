@@ -24,7 +24,15 @@ import {
   Grid,
   EmptyState,
   ButtonGroup,
-  Tooltip
+  Tooltip,
+  Avatar,
+  Checkbox,
+  Popover,
+  ResourceList,
+  ResourceItem,
+  ColorPicker,
+  hsbToHex,
+  rgbToHsb,
 } from "@shopify/polaris";
 import {
   EditIcon,
@@ -34,11 +42,25 @@ import {
   ViewIcon,
   SettingsIcon,
   ExternalIcon,
-  MagicIcon
+  MagicIcon,
+  PageIcon,
+  PaintBrushFlatIcon,
+  AppsIcon,
+  ListBulletedIcon,
+  ShieldCheckMarkIcon,
+  PhoneIcon,
+  DesktopIcon,
+  CheckIcon,
+  CollectionIcon,
+  PinIcon,
+  ChevronRightIcon,
+  InfoIcon,
 } from "@shopify/polaris-icons";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { generateCopy } from "../utils/llm.server";
+import { useEffect } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -55,16 +77,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     select: { id: true, name: true }
   });
 
-  const visibilityConfigs = await prisma.regionHomepageConfig.findMany({
-    where: { shop },
-    include: { region: true }
-  });
-
-  const appConfig = await prisma.appConfig.findUnique({
-    where: { shop }
-  });
+  const [visibilityConfigs, appConfig, modalConfig] = await Promise.all([
+    prisma.regionHomepageConfig.findMany({ where: { shop }, include: { region: true } }),
+    prisma.appConfig.findUnique({ where: { shop } }),
+    prisma.modalConfig.findUnique({ where: { shop } }) || prisma.modalConfig.create({ data: { shop } })
+  ]);
   
-  return json({ components, regions, visibilityConfigs, appConfig, shop });
+  return json({ components, regions, visibilityConfigs, appConfig, modalConfig, shop });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -182,18 +201,100 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
         return json({ success: true });
     }
+
+    case "save_modal_config": {
+        const data = Object.fromEntries(formData);
+        await prisma.modalConfig.update({
+            where: { shop },
+            data: {
+                title: data.title as string,
+                description: data.description as string,
+                confirmButtonText: data.confirmButtonText as string,
+                floatingButtonText: data.floatingButtonText as string,
+                primaryColor: data.primaryColor as string,
+                backgroundColor: data.backgroundColor as string,
+                textColor: data.textColor as string,
+                showFloatingButton: data.showFloatingButton === "true",
+                showCurrentPincode: data.showCurrentPincode === "true",
+                showLocationIcon: data.showLocationIcon === "true",
+                triggerTransparent: data.triggerTransparent === "true",
+                position: data.position as string,
+                triggerBackgroundColor: data.triggerBackgroundColor as string,
+                triggerTextColor: data.triggerTextColor as string,
+                triggerIconColor: data.triggerIconColor as string,
+                triggerBorderRadius: data.triggerBorderRadius as string,
+                triggerPadding: data.triggerPadding as string,
+                triggerFontSize: data.triggerFontSize as string,
+                triggerFontWeight: data.triggerFontWeight as string,
+                triggerLayoutStyle: data.triggerLayoutStyle as string,
+                triggerIconSize: data.triggerIconSize as string,
+                triggerBorderWidth: data.triggerBorderWidth as string,
+                triggerBorderColor: data.triggerBorderColor as string,
+                usePulse: data.usePulse === "true",
+                useGlassmorphism: data.useGlassmorphism === "true",
+                showOnAnyPage: data.showOnAnyPage === "true",
+                disableScroll: data.disableScroll === "true",
+                overlayColor: data.overlayColor as string,
+                overlayBlur: data.overlayBlur as string,
+                pincodePrefixText: data.pincodePrefixText as string,
+                injectionSelector: data.injectionSelector as string,
+                headerImage: data.headerImage as string,
+            } as any
+        });
+        return json({ success: true });
+    }
+
+    case "generate-ai-content": {
+        const prompt = formData.get("prompt") as string;
+        try {
+            const copy = await generateCopy(shop, prompt);
+            return json({ success: true, aiCopy: copy });
+        } catch (e: any) {
+            return json({ error: e.message }, { status: 500 });
+        }
+    }
   }
 
   return json({ success: true });
 };
 
 export default function RegionalManagement() {
-  const { components, regions, visibilityConfigs, appConfig, shop } = useLoaderData<typeof loader>();
+  const { components, regions, visibilityConfigs, appConfig, modalConfig, shop } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const shopify = useAppBridge();
   const navigation = useNavigation();
 
   const [selectedTab, setSelectedTab] = useState(0);
+  const [modalFormState, setModalFormState] = useState<any>(modalConfig);
+  
+  useEffect(() => {
+    setModalFormState(modalConfig);
+  }, [modalConfig]);
+  
+  const isModalDirty = JSON.stringify(modalFormState) !== JSON.stringify(modalConfig);
+
+  const handleSaveModal = () => {
+    const formData = new FormData();
+    formData.append("intent", "save_modal_config");
+    Object.keys(modalFormState).forEach(key => {
+      const val = modalFormState[key];
+      if (val !== undefined && val !== null) {
+        formData.append(key, String(val));
+      }
+    });
+    fetcher.submit(formData, { method: "POST" });
+    shopify.toast.show("Widget preferences saved");
+  };
+
+  const applyPreset = (type: 'modern' | 'minimal' | 'classic' | 'premium') => {
+    const presets = {
+       modern: { triggerLayoutStyle: 'boxed', triggerPadding: '10px 20px', triggerBorderRadius: '30px', triggerTransparent: false, usePulse: true, useGlassmorphism: false },
+       minimal: { triggerLayoutStyle: 'minimal', triggerPadding: '6px 12px', triggerBorderRadius: '0px', triggerTransparent: true, usePulse: false, useGlassmorphism: false },
+       classic: { triggerLayoutStyle: 'boxed', triggerPadding: '12px 24px', triggerBorderRadius: '4px', triggerTransparent: false, usePulse: false, useGlassmorphism: false },
+       premium: { triggerLayoutStyle: 'premium', triggerPadding: '14px 28px', triggerBorderRadius: '30px', triggerTransparent: false, usePulse: false, useGlassmorphism: true }
+    };
+    setModalFormState({ ...modalFormState, ...presets[type] });
+  };
   const [isComponentModalOpen, setIsComponentModalOpen] = useState(false);
   
   // Studio State
@@ -208,9 +309,10 @@ export default function RegionalManagement() {
   const [newComponentType, setNewComponentType] = useState("banner");
 
   const tabs = [
-    { id: 'components', content: 'Component Library' },
-    { id: 'visibility', content: 'Theme Visibility' },
-    { id: 'guard', content: 'Pincode Guard' },
+    { id: 'components', content: 'Regional Content' },
+    { id: 'experience', content: 'Popup Style' },
+    { id: 'visibility', content: 'Market Areas' },
+    { id: 'guard', content: 'Store Access' },
   ];
 
   const handleCreateComponent = () => {
@@ -249,70 +351,132 @@ export default function RegionalManagement() {
     shopify.toast.show("Regional override added");
   };
 
-  const renderComponentList = () => (
-    <BlockStack gap="400">
-      <Banner tone="info" title="Regional Component Library">
-        <p>Build reusable components that automatically adapt their content based on your customer's location. Place them anywhere in your theme using the "Regional Placement" block.</p>
-      </Banner>
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
 
+  const renderComponentList = () => (
+    <BlockStack gap="600">
       <InlineStack align="space-between" blockAlign="center">
-        <Text variant="headingMd" as="h2">Your Components</Text>
-        <Button variant="primary" icon={PlusIcon} onClick={() => setIsComponentModalOpen(true)}>Create Component</Button>
+        <BlockStack gap="100">
+            <Text variant="headingLg" as="h2">Regional Content Library</Text>
+            <Text variant="bodySm" tone="subdued" as="p">Deploy regional banners, widgets, and dynamic content snippets.</Text>
+        </BlockStack>
+        <InlineStack gap="200">
+            <ButtonGroup variant="segmented">
+                <Button pressed={viewMode === 'list'} onClick={() => setViewMode('list')} icon={ListBulletedIcon}>List</Button>
+                <Button pressed={viewMode === 'card'} onClick={() => setViewMode('card')} icon={AppsIcon}>Cards</Button>
+            </ButtonGroup>
+            <Button variant="primary" icon={PlusIcon} onClick={() => setIsComponentModalOpen(true)}>Create Component</Button>
+        </InlineStack>
       </InlineStack>
 
       {components.length === 0 ? (
         <Card>
             <EmptyState
-                heading="Start building your regional library"
-                action={{ content: 'Create your first component', onAction: () => setIsComponentModalOpen(true) }}
+                heading="Your design library is empty"
+                action={{ content: 'Initialize Studio Library', onAction: () => setIsComponentModalOpen(true) }}
                 image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
             >
-                <p>Create banners, countdowns, and more that speak directly to your regional audiences.</p>
+                <p>Start by creating a regional banner or delivery widget to engage your audience.</p>
             </EmptyState>
         </Card>
-      ) : (
+      ) : viewMode === 'card' ? (
         <Grid>
           {components.map((comp: any) => (
-            <Grid.Cell key={comp.id} columnSpan={{ xs: 6, sm: 3, md: 4, lg: 4, xl: 4 }}>
-              <Card>
-                <BlockStack gap="300">
-                  <InlineStack align="space-between" blockAlign="center">
-                    <Badge tone="info">{comp.type.toUpperCase()}</Badge>
-                    <ButtonGroup>
-                        <Tooltip content="Open Studio">
-                            <Button icon={EditIcon} variant="tertiary" onClick={() => {
-                                setEditingComponent({ ...comp, defaultSettings: JSON.parse(comp.defaultSettings || "{}") });
-                                setActiveRegionId('global');
-                                setIsStudioOpen(true);
-                            }} />
-                        </Tooltip>
-                        <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => { if (confirm("Delete component?")) fetcher.submit({ intent: 'delete_component', id: comp.id }, { method: 'POST' }) }} />
-                    </ButtonGroup>
-                  </InlineStack>
-                  <BlockStack gap="100">
-                    <Text variant="headingSm" as="h3">{comp.name}</Text>
-                    <InlineStack gap="100" blockAlign="center">
-                        <Text variant="bodyXs" tone="subdued" as="span">ID: <code>{comp.id.substring(0, 8)}</code></Text>
-                        <Button variant="plain" size="micro" icon={ExternalIcon} onClick={() => {
-                            navigator.clipboard.writeText(comp.id);
-                            shopify.toast.show("ID Copied");
-                        }}>Copy</Button>
+            <Grid.Cell key={comp.id} columnSpan={{ xs: 6, sm: 6, md: 4, lg: 4 }}>
+              <Box 
+                background="bg-surface" 
+                borderRadius="400" 
+                padding="0" 
+                borderStyle="solid" 
+                borderWidth="025" 
+                borderColor="border"
+                shadow="100"
+              >
+                <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary">
+                    <InlineStack align="space-between" blockAlign="center">
+                        <Badge tone="info">{comp.type.replace('_', ' ').toUpperCase()}</Badge>
+                        <InlineStack gap="100">
+                            <Tooltip content="Launch Editor">
+                                <Button icon={EditIcon} variant="tertiary" onClick={() => {
+                                    setEditingComponent({ ...comp, defaultSettings: JSON.parse(comp.defaultSettings || "{}") });
+                                    setActiveRegionId('global');
+                                    setIsStudioOpen(true);
+                                }} />
+                            </Tooltip>
+                            <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => { if (confirm("Permanently delete this component?")) fetcher.submit({ intent: 'delete_component', id: comp.id }, { method: 'POST' }) }} />
+                        </InlineStack>
                     </InlineStack>
-                  </BlockStack>
-                  <Divider />
-                  <InlineStack align="space-between" blockAlign="center">
-                    <Text variant="bodySm" tone="subdued" as="span">{comp.overrides.length} Variants</Text>
-                    <Button variant="plain" onClick={() => {
-                         setEditingComponent({ ...comp, defaultSettings: JSON.parse(comp.defaultSettings || "{}") });
-                         setActiveRegionId('global');
-                         setIsStudioOpen(true);
-                    }}>Manage</Button>
-                  </InlineStack>
-                </BlockStack>
-              </Card>
+                </Box>
+                
+                <Box padding="500">
+                    <BlockStack gap="400">
+                        <BlockStack gap="100">
+                            <Text variant="headingMd" as="h3" fontWeight="bold">{comp.name}</Text>
+                            <InlineStack gap="100" blockAlign="center">
+                                <Text variant="bodyXs" tone="subdued" as="p">Component ID: <code>{comp.id.substring(0, 8)}</code></Text>
+                                <Button variant="plain" size="micro" onClick={() => {
+                                    navigator.clipboard.writeText(comp.id);
+                                    shopify.toast.show("ID Copied to Clipboard");
+                                }}>Copy</Button>
+                            </InlineStack>
+                        </BlockStack>
+
+                        <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                            <InlineStack align="space-between" blockAlign="center">
+                                <BlockStack gap="050">
+                                    <Text variant="bodyXs" tone="subdued" as="p">Variants</Text>
+                                    <Text variant="headingSm" as="p">{comp.overrides.length + 1} Managed</Text>
+                                </BlockStack>
+                                <Avatar size="sm" customer name={comp.name} />
+                            </InlineStack>
+                        </Box>
+
+                        <Button fullWidth variant="secondary" onClick={() => {
+                             setEditingComponent({ ...comp, defaultSettings: JSON.parse(comp.defaultSettings || "{}") });
+                             setActiveRegionId('global');
+                             setIsStudioOpen(true);
+                        }}>Enter Design Studio</Button>
+                    </BlockStack>
+                </Box>
+              </Box>
             </Grid.Cell>
           ))}
         </Grid>
+      ) : (
+        <Card padding="0">
+            <ResourceList
+                resourceName={{ singular: 'component', plural: 'components' }}
+                items={components}
+                renderItem={(comp: any) => (
+                    <ResourceItem id={comp.id} onClick={() => {
+                        setEditingComponent({ ...comp, defaultSettings: JSON.parse(comp.defaultSettings || "{}") });
+                        setActiveRegionId('global');
+                        setIsStudioOpen(true);
+                    }}>
+                        <InlineStack align="space-between" blockAlign="center">
+                            <InlineStack gap="400" blockAlign="center">
+                                <Avatar size="md" customer name={comp.name} />
+                                <BlockStack gap="100">
+                                    <Text variant="headingMd" as="h3">{comp.name}</Text>
+                                    <InlineStack gap="200">
+                                        <Badge tone="info" size="small">{comp.type.replace('_', ' ').toUpperCase()}</Badge>
+                                        <Text variant="bodySm" tone="subdued" as="p">{comp.overrides.length + 1} variants</Text>
+                                    </InlineStack>
+                                </BlockStack>
+                            </InlineStack>
+                            <InlineStack gap="400" blockAlign="center">
+                                <Button variant="tertiary" icon={EditIcon} onClick={() => {
+                                    setEditingComponent({ ...comp, defaultSettings: JSON.parse(comp.defaultSettings || "{}") });
+                                    setActiveRegionId('global');
+                                    setIsStudioOpen(true);
+                                }} />
+                                <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => { if (confirm("Permanently delete?")) fetcher.submit({ intent: 'delete_component', id: comp.id }, { method: 'POST' }) }} />
+                            </InlineStack>
+                        </InlineStack>
+                    </ResourceItem>
+                )}
+            />
+        </Card>
       )}
     </BlockStack>
   );
@@ -576,65 +740,423 @@ export default function RegionalManagement() {
     );
   };
 
-  const renderVisibilitySection = () => (
-    <BlockStack gap="400">
-      <Banner tone="info" title="Targeting Existing Theme Elements">
-        <p>Use these rules to hide standard sections or show region-exclusive blocks that you've already created in your Shopify Theme Editor.</p>
-      </Banner>
-      
-      <Layout>
-        {regions.map((region: any) => {
-          const config = visibilityConfigs.find((c: any) => c.regionId === region.id);
-          const data = JSON.parse(config?.sectionsOrder || "{}");
-          return (
-            <Layout.Section key={region.id}>
-              <Card>
-                <BlockStack gap="400">
-                  <InlineStack align="space-between" blockAlign="center">
-                    <Text variant="headingSm" as="h3">{region.name}</Text>
-                    <Badge tone={data.hiddenSelectors || data.showOnlySelectors ? "attention" : undefined}>
-                        {data.hiddenSelectors || data.showOnlySelectors ? "Active Rules" : "No rules"}
-                    </Badge>
-                  </InlineStack>
-                  
-                  <Grid>
-                    <Grid.Cell columnSpan={{xs: 6, md: 3}}>
-                        <TextField
-                            label="Hide these elements (CSS Selectors)"
-                            value={data.hiddenSelectors || ""}
-                            onChange={(v) => fetcher.submit({ 
-                                intent: 'save_visibility', 
-                                regionId: region.id, 
-                                hiddenSelectors: v, 
-                                showOnlySelectors: data.showOnlySelectors || "" 
-                            }, { method: 'POST' })}
-                            placeholder=".announcement-bar, .hero-default"
-                            autoComplete="off"
-                            helpText="Comma-separated classes or IDs to HIDE for this region."
-                        />
-                    </Grid.Cell>
-                    <Grid.Cell columnSpan={{xs: 6, md: 3}}>
-                        <TextField
-                            label="Show ONLY for this region"
-                            value={data.showOnlySelectors || ""}
-                            onChange={(v) => fetcher.submit({ 
-                                intent: 'save_visibility', 
-                                regionId: region.id, 
-                                hiddenSelectors: data.hiddenSelectors || "", 
-                                showOnlySelectors: v 
-                            }, { method: 'POST' })}
-                            placeholder=".exclusive-delhi-banner"
-                            autoComplete="off"
-                            helpText="Elements that will be HIDDEN for everyone else."
-                        />
-                    </Grid.Cell>
-                  </Grid>
-                </BlockStack>
-              </Card>
+  const [activeDesignerTab, setActiveDesignerTab] = useState(0);
+
+  const renderExperienceDesigner = () => (
+    <BlockStack gap="600">
+        <InlineStack gap="300" align="space-between" blockAlign="center">
+            <BlockStack gap="100">
+                <Text variant="headingLg" as="h2">Popup Style</Text>
+                <Text variant="bodySm" tone="subdued" as="p">Sculpt the visual identity of your regional widgets and modals.</Text>
+            </BlockStack>
+            <Box background="bg-surface-secondary" padding="200" borderRadius="300">
+                <InlineStack gap="200">
+                    <Button variant="tertiary" size="slim" onClick={() => applyPreset('modern')}>Modern</Button>
+                    <Button variant="tertiary" size="slim" onClick={() => applyPreset('minimal')}>Minimal</Button>
+                    <Button variant="tertiary" size="slim" onClick={() => applyPreset('premium')}>Premium</Button>
+                </InlineStack>
+            </Box>
+        </InlineStack>
+
+        <Layout>
+            <Layout.Section>
+                <Card padding="0">
+                    <Tabs 
+                        tabs={[
+                            {id: 'content', content: 'Content & Copy'}, 
+                            {id: 'style', content: 'Visual Style'}, 
+                            {id: 'behavior', content: 'Interaction & Scroll'}
+                        ]} 
+                        selected={activeDesignerTab} 
+                        onSelect={setActiveDesignerTab}
+                    >
+                        <Box padding="600">
+                             {activeDesignerTab === 0 && (
+                                <BlockStack gap="500">
+                                    <BlockStack gap="400">
+                                        <Text variant="headingMd" as="h3">Core Messaging</Text>
+                                        <TextField label="Modal Title" value={modalFormState.title} onChange={(v) => setModalFormState({...modalFormState, title: v})} autoComplete="off" />
+                                        <TextField label="Modal Description" value={modalFormState.description} multiline={3} onChange={(v) => setModalFormState({...modalFormState, description: v})} autoComplete="off" />
+                                        
+                                        <Box background="bg-surface-secondary" padding="400" borderRadius="200" borderStyle="dashed" borderWidth="025" borderColor="border-info">
+                                            <InlineStack align="space-between" blockAlign="center">
+                                                <BlockStack gap="100">
+                                                    <Text variant="headingSm" as="h4">Intelligence Insight</Text>
+                                                    <Text variant="bodyXs" tone="subdued" as="p">Use AI to craft high-converting regional messaging.</Text>
+                                                </BlockStack>
+                                                <Button icon={MagicIcon} variant="primary" onClick={() => {
+                                                    fetcher.submit({ 
+                                                        intent: "generate-ai-content", 
+                                                        prompt: `Generate a premium, high-converting title and description for a regional pricing modal. Current title: ${modalFormState.title}` 
+                                                    }, { method: "POST" });
+                                                }} loading={fetcher.state === 'submitting' && fetcher.formData?.get('intent') === 'generate-ai-content'}>Optimize Copy</Button>
+                                            </InlineStack>
+                                        </Box>
+                                    </BlockStack>
+                                    <Divider />
+                                    <BlockStack gap="400">
+                                        <Text variant="headingSm" as="h3">Visual Assets & Toggles</Text>
+                                        <TextField label="Header Image URL" value={modalFormState.headerImage || ''} onChange={(v) => setModalFormState({...modalFormState, headerImage: v})} placeholder="https://cdn.shopify.com/..." autoComplete="off" />
+                                        <InlineStack gap="400">
+                                            <Checkbox label="Show Location Button" checked={modalFormState.showLocationIcon} onChange={(v) => setModalFormState({...modalFormState, showLocationIcon: v})} />
+                                            <Checkbox label="Show Current Pincode on Trigger" checked={modalFormState.showCurrentPincode} onChange={(v) => setModalFormState({...modalFormState, showCurrentPincode: v})} />
+                                        </InlineStack>
+                                        {modalFormState.showCurrentPincode && (
+                                            <TextField 
+                                                label="Pincode Prefix Text" 
+                                                value={modalFormState.pincodePrefixText || 'Delivering to:'} 
+                                                onChange={(v) => setModalFormState({...modalFormState, pincodePrefixText: v})} 
+                                                placeholder="Delivering to:" 
+                                                autoComplete="off" 
+                                                helpText="Appears above the pincode/region name on the floating button."
+                                            />
+                                        )}
+                                    </BlockStack>
+                                    <Divider />
+                                    <BlockStack gap="400">
+                                        <Text variant="headingSm" as="h3">Button Labels</Text>
+                                        <TextField label="Floating Trigger Text" value={modalFormState.floatingButtonText} onChange={(v) => setModalFormState({...modalFormState, floatingButtonText: v})} autoComplete="off" />
+                                        <TextField label="Modal Confirm Button" value={modalFormState.confirmButtonText} onChange={(v) => setModalFormState({...modalFormState, confirmButtonText: v})} autoComplete="off" />
+                                    </BlockStack>
+                                </BlockStack>
+                            )}
+
+                            {activeDesignerTab === 1 && (
+                                <BlockStack gap="500">
+                                    <BlockStack gap="400">
+                                        <Text variant="headingMd" as="h3">Pincode Modal Style</Text>
+                                        <Grid>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Surface Background" value={modalFormState.backgroundColor} onChange={(v) => setModalFormState({...modalFormState, backgroundColor: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Primary Accent" value={modalFormState.primaryColor} onChange={(v) => setModalFormState({...modalFormState, primaryColor: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Text Color" value={modalFormState.textColor} onChange={(v) => setModalFormState({...modalFormState, textColor: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Overlay Backdrop" value={modalFormState.overlayColor} onChange={(v) => setModalFormState({...modalFormState, overlayColor: v})} />
+                                            </Grid.Cell>
+                                        </Grid>
+                                    </BlockStack>
+                                    <Divider />
+                                    <BlockStack gap="400">
+                                        <Text variant="headingMd" as="h3">Floating Button Style</Text>
+                                        <Grid>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <Select
+                                                   label="Layout Style"
+                                                   options={[
+                                                       {label: 'Boxed', value: 'boxed'},
+                                                       {label: 'Minimal Pin', value: 'minimal'},
+                                                       {label: 'Premium Glass', value: 'premium'},
+                                                   ]}
+                                                   value={modalFormState.triggerLayoutStyle}
+                                                   onChange={(v) => setModalFormState({...modalFormState, triggerLayoutStyle: v})}
+                                                />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <TextField label="Border Radius (px)" value={modalFormState.triggerBorderRadius} onChange={(v) => setModalFormState({...modalFormState, triggerBorderRadius: v})} autoComplete="off" />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <Checkbox label="Enable Pulse Effect" checked={modalFormState.usePulse} onChange={(v) => setModalFormState({...modalFormState, usePulse: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <Checkbox label="Transparent Background" checked={modalFormState.triggerTransparent} onChange={(v) => setModalFormState({...modalFormState, triggerTransparent: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Button Background" value={modalFormState.triggerBackgroundColor} disabled={modalFormState.triggerTransparent || modalFormState.triggerLayoutStyle === 'minimal'} onChange={(v) => setModalFormState({...modalFormState, triggerBackgroundColor: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Button Text & Icon" value={modalFormState.triggerTextColor} onChange={(v) => setModalFormState({...modalFormState, triggerTextColor: v})} />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <ColorField label="Button Border" value={modalFormState.triggerBorderColor} disabled={modalFormState.triggerLayoutStyle === 'minimal'} onChange={(v) => setModalFormState({...modalFormState, triggerBorderColor: v})} />
+                                            </Grid.Cell>
+                                        </Grid>
+                                    </BlockStack>
+                                </BlockStack>
+                            )}
+
+                            {activeDesignerTab === 2 && (
+                                <BlockStack gap="500">
+                                    <BlockStack gap="400">
+                                        <Text variant="headingMd" as="h3">Modal Interaction</Text>
+                                        <Box background="bg-surface-secondary" padding="400" borderRadius="200">
+                                            <BlockStack gap="300">
+                                                <Checkbox 
+                                                    label="Lock Background Scroll" 
+                                                    helpText="Prevent visitors from scrolling the storefront page while the pincode modal is active."
+                                                    checked={modalFormState.disableScroll} 
+                                                    onChange={(v) => setModalFormState({...modalFormState, disableScroll: v})} 
+                                                />
+                                                <Checkbox 
+                                                    label="Show on Any Page" 
+                                                    helpText="If active, the pincode prompt can appear on any page until a pincode is set."
+                                                    checked={modalFormState.showOnAnyPage} 
+                                                    onChange={(v) => setModalFormState({...modalFormState, showOnAnyPage: v})} 
+                                                />
+                                            </BlockStack>
+                                        </Box>
+                                    </BlockStack>
+                                    <Divider />
+                                    <BlockStack gap="400">
+                                        <Text variant="headingMd" as="h3">Overlay & Backdrop</Text>
+                                        <Grid>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <TextField 
+                                                    label="Overlay Blur Intensity" 
+                                                    value={modalFormState.overlayBlur} 
+                                                    onChange={(v) => setModalFormState({...modalFormState, overlayBlur: v})} 
+                                                    autoComplete="off" 
+                                                    placeholder="10px"
+                                                    helpText="Amount of background blur when modal is open."
+                                                />
+                                            </Grid.Cell>
+                                            <Grid.Cell columnSpan={{xs: 6, md: 3}}>
+                                                <Select
+                                                    label="Modal Position"
+                                                    options={[
+                                                        {label: 'Center', value: 'center'},
+                                                        {label: 'Bottom Sheet', value: 'bottom'},
+                                                    ]}
+                                                    value={modalFormState.position}
+                                                    onChange={(v) => setModalFormState({...modalFormState, position: v})}
+                                                />
+                                            </Grid.Cell>
+                                        </Grid>
+                                    </BlockStack>
+                                </BlockStack>
+                            )}
+                        </Box>
+                    </Tabs>
+                </Card>
             </Layout.Section>
-          );
-        })}
-      </Layout>
+
+            <Layout.Section variant="oneThird">
+                <Card padding="0">
+                    <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary" background="bg-surface-secondary">
+                        <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h3">Interactive Preview</Text>
+                            <InlineStack gap="100">
+                                <Icon source={PhoneIcon} tone="subdued" />
+                                <Icon source={DesktopIcon} tone="info" />
+                            </InlineStack>
+                        </InlineStack>
+                    </Box>
+                    <Box padding="0" background="bg-surface-tertiary" minHeight="450px" overflowX="hidden" overflowY="hidden">
+                        <div style={{ 
+                            position: 'relative', 
+                            height: '450px', 
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: modalFormState.position === 'bottom' ? 'flex-end' : 'center',
+                            alignItems: 'center',
+                            padding: '20px',
+                            background: `url('https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png') center/cover no-repeat`,
+                        }}>
+                             {/* Overlay Simulation */}
+                             <div style={{
+                                 position: 'absolute',
+                                 inset: 0,
+                                 backgroundColor: modalFormState.overlayColor || 'rgba(0,0,0,0.4)',
+                                 backdropFilter: `blur(${modalFormState.overlayBlur || '0px'})`,
+                                 zIndex: 1
+                             }} />
+
+                             {/* Modal Mockup */}
+                             <div style={{ 
+                                 position: 'relative',
+                                 zIndex: 2,
+                                 width: '100%',
+                                 maxWidth: '280px',
+                                 borderRadius: '16px', 
+                                 backgroundColor: modalFormState.backgroundColor || '#fff',
+                                 color: modalFormState.textColor || '#000',
+                                 boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                                 transform: 'scale(0.9)',
+                                 border: `1px solid ${modalFormState.primaryColor || '#ddd'}`,
+                                 overflow: 'hidden'
+                             }}>
+                                  {modalFormState.headerImage && (
+                                     <div style={{ width: '100%', height: '80px', overflow: 'hidden' }}>
+                                         <img src={modalFormState.headerImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                     </div>
+                                  )}
+                                  <div style={{ padding: '24px' }}>
+                                      <BlockStack gap="300">
+                                         <Text variant="headingMd" as="h4">{modalFormState.title || 'Enter Pincode'}</Text>
+                                         <Text variant="bodySm" as="p">{modalFormState.description || 'Check availability'}</Text>
+                                         <div style={{ display: 'flex', gap: '8px' }}>
+                                            <div style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '10px', background: '#fff', color: '#333' }}>400001</div>
+                                            <div style={{ backgroundColor: modalFormState.primaryColor, color: '#fff', padding: '8px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>Check</div>
+                                         </div>
+                                         {modalFormState.showLocationIcon && (
+                                            <div style={{ width: '100%', padding: '8px', background: '#f4f4f4', border: '1px solid #ddd', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '9px', color: '#333' }}>
+                                                <Icon source={PinIcon} tone="subdued" />
+                                                Use my current location
+                                            </div>
+                                         )}
+                                      </BlockStack>
+                                  </div>
+                             </div>
+
+                             {/* Trigger Button Mockup (smaller) */}
+                             <div style={{
+                                 position: 'absolute',
+                                 bottom: '10px',
+                                 right: '10px',
+                                 zIndex: 3,
+                                 padding: modalFormState.triggerPadding || '8px 16px', 
+                                 borderRadius: modalFormState.triggerBorderRadius || '20px', 
+                                 backgroundColor: modalFormState.triggerTransparent || modalFormState.triggerLayoutStyle === 'minimal' ? 'rgba(255,255,255,0.2)' : modalFormState.triggerBackgroundColor,
+                                 color: modalFormState.triggerTextColor,
+                                 border: `1px solid ${modalFormState.triggerBorderColor}`,
+                                 backdropFilter: modalFormState.useGlassmorphism ? 'blur(10px)' : 'none',
+                                 fontSize: '10px',
+                                 display: 'flex',
+                                 alignItems: 'center',
+                                 gap: '8px',
+                                 boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                             }}>
+                                  {modalFormState.showCurrentPincode ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: '1.1' }}>
+                                              <span style={{ fontSize: '8px', opacity: 0.7 }}>{modalFormState.pincodePrefixText || 'Delivering to:'}</span>
+                                              <strong>Mumbai Central</strong>
+                                          </div>
+                                          <div style={{ padding: '2px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '4px' }}>
+                                              <Icon source={EditIcon} tone="inherit" />
+                                          </div>
+                                      </div>
+                                  ) : (
+                                      <>
+                                          <Icon source={PinIcon} tone="inherit" />
+                                          <strong>{modalFormState.floatingButtonText || 'Location'}</strong>
+                                      </>
+                                  )}
+                             </div>
+                        </div>
+                    </Box>
+                    <Box padding="400">
+                        <BlockStack gap="300">
+                            <Button fullWidth variant="primary" size="large" onClick={handleSaveModal} disabled={!isModalDirty} loading={fetcher.state === 'submitting'}>Deploy Design Architecture</Button>
+                            <Text variant="bodyXs" tone="subdued" alignment="center" as="p">Visual changes are pushed to your Edge CDN across all regions.</Text>
+                        </BlockStack>
+                    </Box>
+                </Card>
+            </Layout.Section>
+        </Layout>
+    </BlockStack>
+  );
+
+  const renderVisibilitySection = () => (
+    <BlockStack gap="600">
+      <InlineStack align="space-between" blockAlign="center">
+        <BlockStack gap="100">
+            <Text variant="headingLg" as="h2">Market Areas</Text>
+            <Text variant="bodySm" tone="subdued" as="p">Control theme element visibility across your global market segments.</Text>
+        </BlockStack>
+        <Badge tone="info">Advanced Mode</Badge>
+      </InlineStack>
+
+      {regions.length === 0 ? (
+          <Card>
+              <EmptyState
+                  heading="No regions defined"
+                  action={{ content: 'Create Regions', url: '/app/pincodes' }}
+                  image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+              >
+                  <p>You need to define at least one region in Markets & Coverage before setting up visibility rules.</p>
+              </EmptyState>
+          </Card>
+      ) : (
+        <Grid>
+            {regions.map((region: any) => {
+                const config = visibilityConfigs.find((c: any) => c.regionId === region.id);
+                const data = JSON.parse(config?.sectionsOrder || "{}");
+                const hasRules = data.hiddenSelectors || data.showOnlySelectors;
+
+                return (
+                    <Grid.Cell key={region.id} columnSpan={{ xs: 6, md: 6, lg: 6 }}>
+                        <Box 
+                            background="bg-surface" 
+                            borderRadius="400" 
+                            padding="500" 
+                            borderStyle="solid" 
+                            borderWidth="025" 
+                            borderColor={hasRules ? "border-info" : "border"}
+                            shadow={hasRules ? "100" : undefined}
+                        >
+                            <BlockStack gap="400">
+                                <InlineStack align="space-between" blockAlign="center">
+                                    <InlineStack gap="200" blockAlign="center">
+                                        <Avatar size="sm" initials={region.name.substring(0, 1)} name={region.name} />
+                                        <Text variant="headingMd" as="h3">{region.name}</Text>
+                                    </InlineStack>
+                                    <Badge tone={hasRules ? "attention" : undefined}>
+                                        {hasRules ? "Active Logic" : "Inherit Global"}
+                                    </Badge>
+                                </InlineStack>
+                                
+                                <Divider />
+
+                                <BlockStack gap="400">
+                                    <BlockStack gap="200">
+                                        <Box width="fit-content">
+                                            <InlineStack gap="200" align="start" blockAlign="center">
+                                                <Icon source={ViewIcon} tone="subdued" />
+                                                <Text variant="bodyMd" fontWeight="semibold" as="span">Exclusion List (CSS)</Text>
+                                            </InlineStack>
+                                        </Box>
+                                        <TextField
+                                            label="Exclusion List (CSS)"
+                                            labelHidden
+                                            value={data.hiddenSelectors || ""}
+                                            onChange={(v) => fetcher.submit({ 
+                                                intent: 'save_visibility', 
+                                                regionId: region.id, 
+                                                hiddenSelectors: v, 
+                                                showOnlySelectors: data.showOnlySelectors || "" 
+                                            }, { method: 'POST' })}
+                                            placeholder=".announcement-bar, #hero"
+                                            autoComplete="off"
+                                            helpText="Elements to hide specifically for visitors in this market."
+                                        />
+                                    </BlockStack>
+
+                                    <BlockStack gap="200">
+                                        <Box width="fit-content">
+                                            <InlineStack gap="200" align="start" blockAlign="center">
+                                                <Icon source={MagicIcon} tone="info" />
+                                                <Text variant="bodyMd" fontWeight="semibold" as="span">Regional Exclusive (CSS)</Text>
+                                            </InlineStack>
+                                        </Box>
+                                        <TextField
+                                            label="Regional Exclusive (CSS)"
+                                            labelHidden
+                                            value={data.showOnlySelectors || ""}
+                                            onChange={(v) => fetcher.submit({ 
+                                                intent: 'save_visibility', 
+                                                regionId: region.id, 
+                                                hiddenSelectors: data.hiddenSelectors || "", 
+                                                showOnlySelectors: v 
+                                            }, { method: 'POST' })}
+                                            placeholder=".mumbai-only-banner"
+                                            autoComplete="off"
+                                            helpText="Elements to show ONLY for visitors in this market."
+                                        />
+                                    </BlockStack>
+                                </BlockStack>
+                            </BlockStack>
+                        </Box>
+                    </Grid.Cell>
+                );
+            })}
+        </Grid>
+      )}
     </BlockStack>
   );
 
@@ -646,73 +1168,110 @@ export default function RegionalManagement() {
     };
 
     return (
-        <BlockStack gap="400">
-            <Banner tone="warning" title="Pincode Gatekeeping">
-                <p>When active, PinCode Guard restricts access to your entire storefront until a valid pincode is provided. Ideal for hyper-local delivery services.</p>
-            </Banner>
-            <Card>
-                <BlockStack gap="400">
-                    <Text variant="headingMd" as="h2">Gatekeeper Settings</Text>
-                    <Box paddingBlockStart="200">
-                        <BlockStack gap="400">
-                            <Select
-                                label="Status"
-                                options={[
-                                    { label: 'Disabled (Public Access)', value: 'false' },
-                                    { label: 'Enabled (Pincode Wall Active)', value: 'true' }
-                                ]}
-                                value={String(config.pincodeGuardActive)}
-                                onChange={(v) => fetcher.submit({ 
-                                    intent: 'save_app_config', 
-                                    pincodeGuardActive: v,
-                                    lockoutMessage: config.lockoutMessage || "",
-                                    excludedPaths: config.excludedPaths || "",
-                                    regionalPricingActive: String(config.regionalPricingActive ?? true),
-                                    visibilityRulesActive: String(config.visibilityRulesActive ?? true),
-                                    abTestingActive: String(config.abTestingActive ?? false),
-                                    waitlistActive: String(config.waitlistActive ?? true)
-                                }, { method: 'POST' })}
-                            />
+        <BlockStack gap="600">
+            <InlineStack align="space-between" blockAlign="center">
+                <BlockStack gap="100">
+                    <Text variant="headingLg" as="h2">Store Access</Text>
+                    <Text variant="bodySm" tone="subdued" as="p">Configure storefront gatekeeping and global security protocols.</Text>
+                </BlockStack>
+                <Badge tone={config.pincodeGuardActive ? "success" : "info"}>
+                    {config.pincodeGuardActive ? "Shield Active" : "Unrestricted"}
+                </Badge>
+            </InlineStack>
+
+            <Layout>
+                <Layout.Section>
+                    <Box 
+                        background="bg-surface" 
+                        borderRadius="400" 
+                        padding="600" 
+                        borderStyle="solid" 
+                        borderWidth="025" 
+                        borderColor={config.pincodeGuardActive ? "border-success" : "border"}
+                        shadow="100"
+                    >
+                        <BlockStack gap="500">
+                            <InlineStack align="space-between" blockAlign="center">
+                                <BlockStack gap="100">
+                                    <Text variant="headingMd" as="h3">Store Access Gate</Text>
+                                    <Text variant="bodySm" tone="subdued" as="p">Require customers to enter a valid pincode before browsing.</Text>
+                                </BlockStack>
+                                <Button 
+                                    variant={config.pincodeGuardActive ? "primary" : "secondary"} 
+                                    onClick={() => fetcher.submit({ 
+                                        intent: 'save_app_config', 
+                                        pincodeGuardActive: String(!config.pincodeGuardActive),
+                                        lockoutMessage: config.lockoutMessage || "",
+                                        excludedPaths: config.excludedPaths || "",
+                                        regionalPricingActive: String(config.regionalPricingActive ?? true),
+                                        visibilityRulesActive: String(config.visibilityRulesActive ?? true),
+                                        abTestingActive: String(config.abTestingActive ?? false),
+                                        waitlistActive: String(config.waitlistActive ?? true)
+                                    }, { method: 'POST' })}
+                                >
+                                    {config.pincodeGuardActive ? "Deactivate Wall" : "Activate Wall"}
+                                </Button>
+                            </InlineStack>
+
                             {config.pincodeGuardActive && (
-                                <>
-                                    <TextField
-                                        label="Lockout Modal Message"
-                                        value={config.lockoutMessage || ""}
-                                        autoComplete="off"
-                                        onChange={(v) => fetcher.submit({ 
-                                            intent: 'save_app_config', 
-                                            pincodeGuardActive: 'true',
-                                            lockoutMessage: v,
-                                            excludedPaths: config.excludedPaths || "",
-                                            regionalPricingActive: String(config.regionalPricingActive ?? true),
-                                            visibilityRulesActive: String(config.visibilityRulesActive ?? true),
-                                            abTestingActive: String(config.abTestingActive ?? false),
-                                            waitlistActive: String(config.waitlistActive ?? true)
-                                        }, { method: 'POST' })}
-                                        helpText="Message shown when a user enters an unserved pincode."
-                                    />
-                                    <TextField
-                                        label="Excluded URL Paths"
-                                        value={config.excludedPaths || ""}
-                                        autoComplete="off"
-                                        onChange={(v) => fetcher.submit({ 
-                                            intent: 'save_app_config', 
-                                            pincodeGuardActive: 'true',
-                                            lockoutMessage: config.lockoutMessage || "",
-                                            excludedPaths: v,
-                                            regionalPricingActive: String(config.regionalPricingActive ?? true),
-                                            visibilityRulesActive: String(config.visibilityRulesActive ?? true),
-                                            abTestingActive: String(config.abTestingActive ?? false),
-                                            waitlistActive: String(config.waitlistActive ?? true)
-                                        }, { method: 'POST' })}
-                                        helpText="Comma-separated paths to keep public (e.g., /pages/contact, /policies/privacy)."
-                                    />
-                                </>
+                                <Box background="bg-surface-secondary" padding="500" borderRadius="300">
+                                    <BlockStack gap="400">
+                                        <TextField
+                                            label="Lockout Messaging"
+                                            value={config.lockoutMessage || ""}
+                                            autoComplete="off"
+                                            onChange={(v) => fetcher.submit({ 
+                                                intent: 'save_app_config', 
+                                                pincodeGuardActive: 'true',
+                                                lockoutMessage: v,
+                                                excludedPaths: config.excludedPaths || "",
+                                                regionalPricingActive: String(config.regionalPricingActive ?? true),
+                                                visibilityRulesActive: String(config.visibilityRulesActive ?? true),
+                                                abTestingActive: String(config.abTestingActive ?? false),
+                                                waitlistActive: String(config.waitlistActive ?? true)
+                                            }, { method: 'POST' })}
+                                            helpText="Message displayed when coverage is unavailable."
+                                        />
+                                        <TextField
+                                            label="Whitelisted URL Paths"
+                                            value={config.excludedPaths || ""}
+                                            autoComplete="off"
+                                            onChange={(v) => fetcher.submit({ 
+                                                intent: 'save_app_config', 
+                                                pincodeGuardActive: 'true',
+                                                lockoutMessage: config.lockoutMessage || "",
+                                                excludedPaths: v,
+                                                regionalPricingActive: String(config.regionalPricingActive ?? true),
+                                                visibilityRulesActive: String(config.visibilityRulesActive ?? true),
+                                                abTestingActive: String(config.abTestingActive ?? false),
+                                                waitlistActive: String(config.waitlistActive ?? true)
+                                            }, { method: 'POST' })}
+                                            helpText="Allow access to these pages without a pincode (CSV)."
+                                        />
+                                    </BlockStack>
+                                </Box>
                             )}
                         </BlockStack>
                     </Box>
-                </BlockStack>
-            </Card>
+                </Layout.Section>
+
+                <Layout.Section variant="oneThird">
+                    <Card>
+                        <BlockStack gap="300">
+                            <Text variant="headingSm" as="h4">Deployment Status</Text>
+                            <Divider />
+                            <InlineStack align="space-between">
+                                <Text variant="bodySm" tone="subdued" as="span">Theme Blocks</Text>
+                                <Badge tone="success">Active</Badge>
+                            </InlineStack>
+                            <InlineStack align="space-between">
+                                <Text variant="bodySm" tone="subdued" as="span">API Sync</Text>
+                                <Badge tone="success">Healthy</Badge>
+                            </InlineStack>
+                        </BlockStack>
+                    </Card>
+                </Layout.Section>
+            </Layout>
         </BlockStack>
     );
   };
@@ -721,23 +1280,129 @@ export default function RegionalManagement() {
 
   return (
     <Page 
-        title="Pincode-Based Dynamic Pricing - Components"
+        fullWidth
+        title="Visual Studio Hub"
+        subtitle="Design and deploy regional elements with the precision of a master architect."
+        backAction={{ content: 'Dashboard', url: '/app' }}
         primaryAction={{
-            content: "Create New Component",
-            onAction: () => setIsComponentModalOpen(true)
+            content: "Create Component",
+            onAction: () => setIsComponentModalOpen(true),
+            icon: PlusIcon
         }}
     >
-      <Layout>
-        <Layout.Section>
-          <Card padding="0">
-            <Tabs tabs={tabs} selected={selectedTab} onSelect={setSelectedTab}>
-                <Box padding="400">
-                    {selectedTab === 0 ? renderComponentList() : selectedTab === 1 ? renderVisibilitySection() : renderGuardSection()}
-                </Box>
-            </Tabs>
-          </Card>
-        </Layout.Section>
-      </Layout>
+      <BlockStack gap="600">
+        {/* Studio Intelligence Header */}
+        <Grid>
+            {/* ... (Grid content remains the same) */}
+            <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+                <Card>
+                    <BlockStack gap="200">
+                        <InlineStack align="space-between">
+                            <Text variant="headingSm" as="h3" tone="subdued">Design Library</Text>
+                            <Icon source={AppsIcon} tone="info" />
+                        </InlineStack>
+                        <Text variant="headingLg" as="p">{components.length} Master Assets</Text>
+                    </BlockStack>
+                </Card>
+            </Grid.Cell>
+            <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+                <Card>
+                    <BlockStack gap="200">
+                        <InlineStack align="space-between">
+                            <Text variant="headingSm" as="h3" tone="subdued">Active Variants</Text>
+                            <Icon source={CollectionIcon} tone="success" />
+                        </InlineStack>
+                        <Text variant="headingLg" as="p">{components.reduce((acc: number, c: any) => acc + c.overrides.length, 0)} Contexts</Text>
+                    </BlockStack>
+                </Card>
+            </Grid.Cell>
+            <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+                <Card>
+                    <BlockStack gap="200">
+                        <InlineStack align="space-between">
+                            <Text variant="headingSm" as="h3" tone="subdued">Widget Status</Text>
+                            <Icon source={ShieldCheckMarkIcon} tone="success" />
+                        </InlineStack>
+                        <Text variant="headingLg" as="p">{appConfig?.pincodeGuardActive ? "Secured" : "Public"}</Text>
+                    </BlockStack>
+                </Card>
+            </Grid.Cell>
+            <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+                <Card>
+                    <BlockStack gap="200">
+                        <InlineStack align="space-between">
+                            <Text variant="headingSm" as="h3" tone="subdued">System Health</Text>
+                            <Icon source={CheckIcon} tone="success" />
+                        </InlineStack>
+                        <Text variant="headingLg" as="p">Studio Online</Text>
+                    </BlockStack>
+                </Card>
+            </Grid.Cell>
+        </Grid>
+
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+            <div style={{ width: '260px', flexShrink: 0 }}>
+                <Card padding="0">
+                    <Box padding="400" background="bg-surface-secondary" borderBlockEndWidth="025" borderColor="border-secondary">
+                        <Text variant="headingSm" as="h3">Studio Pillars</Text>
+                    </Box>
+                    <Box padding="200">
+                        <BlockStack gap="100">
+                            {[
+                                { id: 0, label: 'Regional Content', icon: AppsIcon, desc: "Create and manage custom banners, text, and popups for specific regions." },
+                                { id: 1, label: 'Popup Style', icon: PaintBrushFlatIcon, desc: "Customize how your pincode popup looks and behaves on your storefront." },
+                                { id: 2, label: 'Market Areas', icon: PinIcon, desc: "Define the countries, states, or pincode lists that your rules will target." },
+                                { id: 3, label: 'Store Access', icon: ShieldCheckMarkIcon, desc: "Control store entry with entrance guards, scroll-locks, and regional redirects." },
+                            ].map((item) => {
+                                const isActive = selectedTab === item.id;
+                                return (
+                                    <div 
+                                        key={item.id} 
+                                        style={{ cursor: 'pointer' }} 
+                                        onClick={() => setSelectedTab(item.id)}
+                                    >
+                                        <Box 
+                                            padding="200" 
+                                            borderRadius="200" 
+                                            background={isActive ? "bg-surface-secondary" : undefined}
+                                            shadow={isActive ? "100" : undefined}
+                                            borderInlineStartWidth={isActive ? "100" : "0"}
+                                            borderColor="border-info"
+                                        >
+                                            <InlineStack gap="200" blockAlign="center" align="start">
+                                                <div style={{ padding: '4px' }}>
+                                                    <Icon source={item.icon} tone={isActive ? "info" : "subdued"} />
+                                                </div>
+                                                <div style={{ padding: '2px 0' }}>
+                                                    <InlineStack gap="100" blockAlign="center">
+                                                        <Text variant="bodyMd" fontWeight={isActive ? "bold" : "medium"} as="span">
+                                                            {item.label}
+                                                        </Text>
+                                                        <Tooltip content={(item as any).desc} dismissOnMouseOut>
+                                                            <Box padding="050">
+                                                                <Icon source={InfoIcon} tone="subdued" />
+                                                            </Box>
+                                                        </Tooltip>
+                                                    </InlineStack>
+                                                </div>
+                                            </InlineStack>
+                                        </Box>
+                                    </div>
+                                );
+                            })}
+                        </BlockStack>
+                    </Box>
+                </Card>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0, minHeight: '600px' }}>
+                {selectedTab === 0 ? renderComponentList() : 
+                 selectedTab === 1 ? renderExperienceDesigner() : 
+                 selectedTab === 2 ? renderVisibilitySection() : 
+                 renderGuardSection()}
+            </div>
+        </div>
+      </BlockStack>
 
       <Modal
         open={isComponentModalOpen}
@@ -766,4 +1431,63 @@ export default function RegionalManagement() {
       </Modal>
     </Page>
   );
+}
+
+function ColorField({ label, value, onChange, disabled }: { label: string, value: string, onChange: (v: string) => void, disabled?: boolean }) {
+    const [popoverActive, setPopoverActive] = useState(false);
+    const togglePopoverActive = useCallback(() => setPopoverActive((active) => !active), []);
+    
+    return (
+        <BlockStack gap="100">
+            <TextField
+                label={label}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+                autoComplete="off"
+                prefix={
+                    <div 
+                        onClick={!disabled ? togglePopoverActive : undefined}
+                        style={{ 
+                            width: '20px', 
+                            height: '20px', 
+                            borderRadius: '4px', 
+                            backgroundColor: value, 
+                            border: '1px solid #dfe3e8', 
+                            cursor: disabled ? 'default' : 'pointer' 
+                        }} 
+                    />
+                }
+            />
+            {!disabled && (
+                <Popover
+                    active={popoverActive}
+                    activator={<div style={{ height: 0 }} />}
+                    onClose={togglePopoverActive}
+                    autofocusTarget="none"
+                >
+                    <Box padding="400">
+                        <ColorPicker
+                            onChange={(hsb) => onChange(hsbToHex(hsb))}
+                            color={hexToHsb(value)}
+                        />
+                    </Box>
+                </Popover>
+            )}
+        </BlockStack>
+    );
+}
+
+function hexToRgb(hex: string) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    red: parseInt(result[1], 16),
+    green: parseInt(result[2], 16),
+    blue: parseInt(result[3], 16)
+  } : { red: 0, green: 0, blue: 0 };
+}
+
+function hexToHsb(hex: string) {
+    const rgb = hexToRgb(hex);
+    return rgbToHsb(rgb);
 }

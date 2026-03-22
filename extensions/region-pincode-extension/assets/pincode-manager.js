@@ -144,11 +144,13 @@
                         else if (config.position === "top-left") { floatingTrigger.style.top = margin; floatingTrigger.style.left = margin; }
                         else { floatingTrigger.style.bottom = margin; floatingTrigger.style.right = margin; }
 
-                        if (config.showCurrentPincode) {
+                        const activeRegion = getStored("regionId");
+                        if (config.showCurrentPincode && activeRegion && activeRegion !== "null") {
                             const currentPincode = getStored("lastCheckedPincode") || "Pincode";
                             const currentRegion = getStored("regionName");
                             const displayText = (currentRegion && currentRegion !== "undefined") ? currentRegion : currentPincode;
-                            btn.innerHTML = `<div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.1;"><span style="font-size:9px; opacity:0.7;">${config.pincodePrefixText || "Delivering to:"}</span><strong>${displayText}</strong></div>`;
+                            const pencilIcon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px; opacity: 0.8;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+                            btn.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.1;"><span style="font-size:9px; opacity:0.7;">${config.pincodePrefixText || "Delivering to:"}</span><strong>${displayText}</strong></div>${pencilIcon}</div>`;
                         } else if (config.floatingButtonText) {
                             btn.innerText = config.floatingButtonText;
                         }
@@ -390,13 +392,15 @@
             });
         }
 
-        document.addEventListener("click", (e) => {
+        document.addEventListener("click", async (e) => {
             if (e.target.closest('[data-open-pincode-modal]')) { 
                 e.preventDefault(); 
                 if (modal) {
                     modal.style.display = "flex"; 
-                    // We don't disable scroll on manual trigger unless specified, 
-                    // but for consistency let's check config if it should always lock
+                    const config = await configPromise;
+                    if (config && config.disableScroll) {
+                        toggleScroll(true);
+                    }
                 }
             }
             if (e.target.id === "pincode-modal-close") { 

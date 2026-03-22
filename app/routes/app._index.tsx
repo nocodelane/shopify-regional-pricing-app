@@ -43,9 +43,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       where: { shop, matched: false },
       _count: { pincode: true },
       orderBy: { _count: { pincode: 'desc' } },
-      take: 3,
+      take: 4,
     }),
-    prisma.lLMConfig.findUnique({ where: { shop } })
+    prisma.lLMConfig.findUnique({ where: { shop } }),
+    prisma.region.count({ where: { shop } }),
+    prisma.pricingRule.count({ where: { shop } })
   ]);
 
   const coverageRatio = totalSearches > 0 ? (matchedSearches / totalSearches) * 100 : 0;
@@ -89,7 +91,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       totalSearches,
       coverageRatio: coverageRatio.toFixed(1),
       waitlistCount,
-      unmatchedSearches // This is the top 3 unserved pincodes
+      unmatchedSearches,
+      regionCount: regions.length,
+      ruleCount: (regions as any).ruleCount || 0
     }
   });
 };
@@ -210,188 +214,217 @@ export default function Index() {
     fetcher.submit({ intent: "toggle-feature", feature, value: (!current).toString() }, { method: "POST" });
   };
 
-  const KPICard = ({ title, value, label, icon, tone }: any) => (
-    <CardTextAlignment>
-      <Card>
-        <BlockStack gap="200">
-          <InlineStack align="space-between" blockAlign="center">
-            <Text variant="headingSm" as="h3">{title}</Text>
+  const KPICard = ({ title, value, label, icon, tone, progress }: any) => (
+    <Card>
+      <BlockStack gap="200">
+        <InlineStack align="space-between" blockAlign="center">
+          <Box padding="100" background="bg-surface-secondary" borderRadius="100">
             <Icon source={icon} tone={tone || "base"} />
+          </Box>
+          <Text variant="headingSm" as="h3" tone="subdued">{title}</Text>
+        </InlineStack>
+        <BlockStack gap="100">
+          <Text variant="headingXl" as="p">{value}</Text>
+          <InlineStack gap="100" blockAlign="center">
+             <Text variant="bodySm" tone="subdued" as="span">{label}</Text>
           </InlineStack>
-          <Text variant="headingLg" as="p">{value}</Text>
-          <Text variant="bodySm" tone="subdued" as="span">{label}</Text>
+        </BlockStack>
+        {progress !== undefined && (
+          <Box width="100%" background="bg-surface-secondary" borderRadius="full" minHeight="4px">
+            <div style={{ width: `${progress}%`, height: '4px', backgroundColor: 'var(--p-color-bg-fill-success)', borderRadius: '2px' }} />
+          </Box>
+        )}
+      </BlockStack>
+    </Card>
+  );
+
+  const HubCard = ({ title, description, icon, url, badge, tone }: any) => (
+    <div onClick={() => navigate(url)} style={{ cursor: 'pointer', height: '100%' }}>
+      <Card padding="400">
+        <BlockStack gap="400">
+          <InlineStack align="space-between">
+             <Box padding="200" background="bg-surface-secondary" borderRadius="200">
+                <Icon source={icon} tone={tone || "base"} />
+             </Box>
+             {badge && <Badge tone={tone}>{badge}</Badge>}
+          </InlineStack>
+          <BlockStack gap="100">
+            <Text variant="headingMd" as="h3">{title}</Text>
+            <Text variant="bodySm" tone="subdued" as="p">{description}</Text>
+          </BlockStack>
+          <Button variant="tertiary" icon={PlusIcon} onClick={() => navigate(url)}>Open Hub</Button>
         </BlockStack>
       </Card>
-    </CardTextAlignment>
+    </div>
   );
 
   return (
-    <Page title="Pincode-Based Dynamic Pricing">
-      <BlockStack gap="500">
-        {/* KPI Banner */}
+    <Page 
+       title="Command Center" 
+       subtitle="Unified management for your regional storefront."
+       primaryAction={
+         <Button variant="primary" onClick={() => setIsModalOpen(true)} icon={PlusIcon}>Create New Region</Button>
+       }
+       secondaryActions={[
+         { content: 'Configure AI', icon: MagicIcon, onAction: () => setIsAIModalOpen(true) },
+         { content: 'Setup Guide', icon: SettingsIcon, onAction: () => navigate("/app/guide") }
+       ]}
+    >
+      <BlockStack gap="600">
+        {/* Visual Stats Row */}
         <Grid>
           <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 3 }}>
-            <KPICard title="Market Coverage" value={`${stats.coverageRatio}%`} label="Searches matched" icon={LocationIcon} tone="success" />
+            <KPICard title="Market Coverage" value={`${stats.coverageRatio}%`} label="Revenue Matched" icon={LocationIcon} tone="success" progress={stats.coverageRatio} />
           </Grid.Cell>
           <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 3 }}>
-            <KPICard title="Total Interest" value={stats.totalSearches} label="Pincode attempts" icon={SearchIcon} />
+            <KPICard title="Customer Interest" value={stats.totalSearches} label="Pincode attempts" icon={SearchIcon} />
           </Grid.Cell>
           <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 3 }}>
-            <KPICard title="Waitlist Leads" value={stats.waitlistCount} label="Unserved customers" icon={PersonIcon} tone="info" />
+            <KPICard title="Waitlist Leads" value={stats.waitlistCount} label="Exportable prospects" icon={PersonIcon} tone="info" />
           </Grid.Cell>
-          <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 4, lg: 3 }}>
+          <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 3 }}>
              <Card>
-              <BlockStack gap="200">
-                <InlineStack align="space-between" blockAlign="center">
-                  <Text variant="headingSm" as="h3">System Health</Text>
-                  <Badge tone="success">Active</Badge>
-                </InlineStack>
-                <InlineStack gap="200" blockAlign="center">
-                   <Text variant="bodySm" as="span">Sync: <Badge size="small">Optimized</Badge></Text>
-                    <Text variant="bodySm" as="span">AI: <Badge size="small">{config.aiFeaturesActive ? "Ready" : "Disabled"}</Badge></Text>
-                </InlineStack>
-                <InlineStack gap="200">
-                    <Button variant="tertiary" size="slim" onClick={() => setIsAIModalOpen(true)} icon={MagicIcon}>Configure AI</Button>
-                    <Button variant="tertiary" size="slim" url="/app/config" icon={SettingsIcon}>Regional Components</Button>
-                </InlineStack>
-              </BlockStack>
-            </Card>
+               <BlockStack gap="400">
+                  <InlineStack align="space-between">
+                     <Text variant="headingSm" as="h3" tone="subdued">System Health</Text>
+                     <Badge tone="success">Optimal</Badge>
+                  </InlineStack>
+                  <BlockStack gap="200">
+                     <InlineStack align="space-between">
+                        <Text variant="bodySm" as="span">Edge Sync</Text>
+                        <Text variant="bodySm" fontWeight="bold" tone="success" as="span">Active</Text>
+                     </InlineStack>
+                     <InlineStack align="space-between">
+                        <Text variant="bodySm" as="span">Ruleset Size</Text>
+                        <Text variant="bodySm" fontWeight="bold" as="span">{stats.ruleCount} Rules</Text>
+                     </InlineStack>
+                  </BlockStack>
+               </BlockStack>
+             </Card>
           </Grid.Cell>
         </Grid>
+
+        {/* Primary Hub Grid */}
+        <BlockStack gap="400">
+           <Text variant="headingLg" as="h2">Primary Management Hubs</Text>
+           <Grid>
+             <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 3, lg: 3}}>
+                <HubCard 
+                  title="Markets & Coverage" 
+                  description="Define regions, map pincodes, and manage local geography." 
+                  icon={LocationIcon} 
+                  url="/app/pincodes" 
+                  badge={`${stats.regionCount} Regions`}
+                  tone="info"
+                />
+             </Grid.Cell>
+             <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 3, lg: 3}}>
+                <HubCard 
+                  title="Regional Rules" 
+                  description="Pricing logic, product visibility, and tag automation." 
+                  icon={FlagIcon} 
+                  url="/app/logic" 
+                  badge="Automated"
+                  tone="attention"
+                />
+             </Grid.Cell>
+             <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 3, lg: 3}}>
+                <HubCard 
+                  title="Visual Studio" 
+                  description="Customize components, themes, and modal experiences." 
+                  icon={PaintBrushFlatIcon} 
+                  url="/app/config" 
+                  badge="Live Preview"
+                  tone="magic"
+                />
+             </Grid.Cell>
+             <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 3, lg: 3}}>
+                <HubCard 
+                  title="Intelligence" 
+                  description="A/B Test results, demand heatmaps, and growth insights." 
+                  icon={ChartVerticalIcon} 
+                  url="/app/analytics" 
+                  badge="Analytics"
+                  tone="success"
+                />
+             </Grid.Cell>
+           </Grid>
+        </BlockStack>
 
         <Layout>
           <Layout.Section>
             <BlockStack gap="500">
-              {/* Expansion Hot Zones */}
+              {/* Opportunities section - Moved for better flow */}
               <Card>
                 <BlockStack gap="400">
                   <InlineStack align="space-between" blockAlign="center">
                     <BlockStack gap="100">
-                       <Text variant="headingMd" as="h2">Market Expansion: "Hot Zones"</Text>
-                       <Text variant="bodySm" tone="subdued" as="p">Pincodes with the highest unserved demand.</Text>
+                       <Text variant="headingMd" as="h2">Market Expansion Opportunities</Text>
+                       <Text variant="bodySm" tone="subdued" as="p">These pincodes have high demand but no matching region yet.</Text>
                     </BlockStack>
-                    {stats.unmatchedSearches.length > 0 && <Badge tone="attention">{`${stats.unmatchedSearches.length} Opportunity Zones`}</Badge>}
+                    {stats.unmatchedSearches.length > 0 && <Badge tone="attention">{`${stats.unmatchedSearches.length} Hot Zones`}</Badge>}
                   </InlineStack>
                   
                   {stats.unmatchedSearches.length > 0 ? (
                     <Grid>
                        {stats.unmatchedSearches.map((item: any) => (
-                         <Grid.Cell key={item.pincode} columnSpan={{xs: 6, sm: 2, md: 4, lg: 4}}>
-                            <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                         <Grid.Cell key={item.pincode} columnSpan={{xs: 6, sm: 2, md: 3, lg: 3}}>
+                            <Box padding="300" background="bg-surface-secondary" borderRadius="200" borderInlineStartWidth="050" borderColor="border-info">
                                <BlockStack gap="200">
                                   <InlineStack align="space-between" blockAlign="center">
                                      <Text variant="bodyMd" fontWeight="bold" as="span">{item.pincode}</Text>
-                                     <Badge tone="info">{`${item._count.pincode} hits`}</Badge>
+                                     <Badge tone="info" size="small">{`${item._count.pincode} hits`}</Badge>
                                   </InlineStack>
-                                  <Button variant="plain" size="slim" onClick={() => setIsModalOpen(true)}>Create Region</Button>
+                                  <Button variant="plain" size="slim" onClick={() => { setNewRegionName(item.pincode); setIsModalOpen(true); }}>Convert to Region</Button>
                                </BlockStack>
                             </Box>
                          </Grid.Cell>
                        ))}
                     </Grid>
                   ) : (
-                    <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                       <Text alignment="center" tone="subdued" as="p">All searching customers are currently served!</Text>
+                    <Box padding="600" background="bg-surface-secondary" borderRadius="300">
+                       <BlockStack gap="200" align="center">
+                          <Icon source={SearchIcon} tone="subdued" />
+                          <Text alignment="center" tone="subdued" as="p">All searching customers are currently served by your regions.</Text>
+                       </BlockStack>
                     </Box>
                   )}
-                </BlockStack>
-              </Card>
-
-              {/* Quick Access */}
-              <Card>
-                <BlockStack gap="400">
-                  <Text variant="headingMd" as="h2">Management Hub</Text>
-                  <Grid>
-                    <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 4}}>
-                       <Box padding="300" borderBlockStartWidth="025" borderBlockEndWidth="025" borderInlineStartWidth="025" borderInlineEndWidth="025" borderColor="border-secondary" borderRadius="200">
-                          <BlockStack gap="300">
-                             <InlineStack gap="200" blockAlign="center"><Icon source={LocationIcon} /><Text variant="bodyMd" fontWeight="bold" as="span">Coverage Hub</Text></InlineStack>
-                             <Text variant="bodySm" tone="subdued" as="p">Define regions and map pincodes to them.</Text>
-                             <Button fullWidth url="/app/pincodes">Coverage Hub</Button>
-                          </BlockStack>
-                       </Box>
-                    </Grid.Cell>
-                    <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 4}}>
-                       <Box padding="300" borderBlockStartWidth="025" borderBlockEndWidth="025" borderInlineStartWidth="025" borderInlineEndWidth="025" borderColor="border-secondary" borderRadius="200">
-                          <BlockStack gap="300">
-                             <InlineStack gap="200" blockAlign="center"><Icon source={FlagIcon} /><Text variant="bodyMd" fontWeight="bold" as="span">Regional Logic</Text></InlineStack>
-                             <Text variant="bodySm" tone="subdued" as="p">Pricing rules, visibility & flash sales.</Text>
-                             <Button fullWidth url="/app/logic">Rules & Visibility</Button>
-                          </BlockStack>
-                       </Box>
-                    </Grid.Cell>
-                    <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 4}}>
-                       <Box padding="300" borderBlockStartWidth="025" borderBlockEndWidth="025" borderInlineStartWidth="025" borderInlineEndWidth="025" borderColor="border-secondary" borderRadius="200">
-                          <BlockStack gap="300">
-                             <InlineStack gap="200" blockAlign="center"><Icon source={EditIcon} /><Text variant="bodyMd" fontWeight="bold" as="span">Experience Studio</Text></InlineStack>
-                             <Text variant="bodySm" tone="subdued" as="p">Design the storefront pincode modal.</Text>
-                             <Button fullWidth url="/app/modal-customize">Experience Studio</Button>
-                          </BlockStack>
-                       </Box>
-                    </Grid.Cell>
-                  </Grid>
                 </BlockStack>
               </Card>
             </BlockStack>
           </Layout.Section>
 
           <Layout.Section variant="oneThird">
-            <BlockStack gap="500">
-               <Card>
-                <BlockStack gap="400">
+            <Card>
+              <BlockStack gap="400">
+                <Text variant="headingMd" as="h2">Quick Controls</Text>
+                <BlockStack gap="300">
                   <InlineStack align="space-between" blockAlign="center">
-                     <Text variant="headingMd" as="h2">Feature Center</Text>
-                     <Button variant="plain" onClick={() => navigate("/app/config")}>Advanced</Button>
+                    <BlockStack gap="0">
+                      <Text variant="bodyMd" as="span">Dynamic Pricing</Text>
+                      <Text variant="bodyXs" tone="subdued" as="p">Regional price overrides</Text>
+                    </BlockStack>
+                    <Checkbox label="" checked={config.regionalPricingActive} onChange={() => toggleFeature("regionalPricingActive", config.regionalPricingActive)} />
                   </InlineStack>
-                  <BlockStack gap="200">
-                    <Button fullWidth icon={LocationIcon} url="/app/pincodes">Coverage Hub</Button>
-                    <Button fullWidth icon={AdjustIcon} url="/app/logic">Regional Logic</Button>
-                    <Button fullWidth icon={PaintBrushFlatIcon} url="/app/modal-customize">Experience Studio</Button>
-                    <Button fullWidth icon={AutomationIcon} url="/app/rules">Tag Automation</Button>
-                    <Divider />
-                    <Button fullWidth icon={ChartVerticalIcon} url="/app/ab-testing" tone="success">A/B Testing Hub</Button>
-                    <Button fullWidth icon={PersonIcon} url="/app/waitlist" tone="success">Waitlist Hub</Button>
-                  </BlockStack>
-                  <BlockStack gap="200">
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodyMd" as="span">Regional Pricing</Text>
-                      <Checkbox label="" checked={config.regionalPricingActive} onChange={() => toggleFeature("regionalPricingActive", config.regionalPricingActive)} />
-                    </InlineStack>
-                    <InlineStack align="space-between" blockAlign="center">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <BlockStack gap="0">
                       <Text variant="bodyMd" as="span">Visibility Rules</Text>
-                      <Checkbox label="" checked={config.visibilityRulesActive} onChange={() => toggleFeature("visibilityRulesActive", config.visibilityRulesActive)} />
-                    </InlineStack>
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodyMd" as="span">A/B Testing</Text>
-                      <Checkbox label="" checked={config.abTestingActive} onChange={() => toggleFeature("abTestingActive", config.abTestingActive)} />
-                    </InlineStack>
-                    <InlineStack align="space-between" blockAlign="center">
-                      <Text variant="bodyMd" as="span">Waitlist Hub</Text>
-                      <Checkbox label="" checked={config.waitlistActive} onChange={() => toggleFeature("waitlistActive", config.waitlistActive)} />
-                    </InlineStack>
-                  </BlockStack>
+                      <Text variant="bodyXs" tone="subdued" as="p">Hide/Show elements locally</Text>
+                    </BlockStack>
+                    <Checkbox label="" checked={config.visibilityRulesActive} onChange={() => toggleFeature("visibilityRulesActive", config.visibilityRulesActive)} />
+                  </InlineStack>
+                  <InlineStack align="space-between" blockAlign="center">
+                    <BlockStack gap="0">
+                      <Text variant="bodyMd" as="span">A/B Experiments</Text>
+                      <Text variant="bodyXs" tone="subdued" as="p">Active traffic splitting</Text>
+                    </BlockStack>
+                    <Checkbox label="" checked={config.abTestingActive} onChange={() => toggleFeature("abTestingActive", config.abTestingActive)} />
+                  </InlineStack>
                   <Divider />
-                  <Button fullWidth variant="primary" onClick={() => setIsModalOpen(true)} icon={PlusIcon}>Create New Region</Button>
+                  <Button fullWidth icon={ChartVerticalIcon} url="/app/analytics" variant="secondary">View Growth Stats</Button>
                 </BlockStack>
-              </Card>
-
-              <Card>
-                <BlockStack gap="400">
-                  <Text variant="headingMd" as="h2">Performance</Text>
-                  <BlockStack gap="200">
-                     <InlineStack align="space-between" blockAlign="center">
-                        <Text variant="bodyMd" as="span">Storefront Lag</Text>
-                        <Badge tone="success">0.02ms</Badge>
-                     </InlineStack>
-                     <InlineStack align="space-between" blockAlign="center">
-                        <Text variant="bodyMd" as="span">Active Rules</Text>
-                        <Badge>{`${regions.length} Regions`}</Badge>
-                     </InlineStack>
-                  </BlockStack>
-                  <Button fullWidth url="/app/analytics">View Detailed Insights</Button>
-                </BlockStack>
-              </Card>
-            </BlockStack>
+              </BlockStack>
+            </Card>
           </Layout.Section>
         </Layout>
       </BlockStack>

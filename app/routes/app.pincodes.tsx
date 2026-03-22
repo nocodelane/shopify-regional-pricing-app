@@ -23,12 +23,21 @@ import {
   SkeletonPage,
   DropZone,
   Banner,
+  Grid,
+  ButtonGroup,
 } from "@shopify/polaris";
 import {
   EditIcon,
   ImportIcon,
   ExportIcon,
   PlusIcon,
+  LocationIcon,
+  PinIcon,
+  SearchIcon,
+  PackageIcon,
+  DatabaseIcon,
+  ListBulletedIcon,
+  AppsIcon,
 } from "@shopify/polaris-icons";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -154,6 +163,8 @@ export default function Pincodes() {
   const [editingPincodes, setEditingPincodes] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
+
   const handleExport = () => {
     let csvContent = "data:text/csv;charset=utf-8,Region Name,Pincode/Range\n";
     pincodes.forEach((p: any) => { csvContent += `${p.region.name},${p.pincode}\n`; });
@@ -199,49 +210,157 @@ export default function Pincodes() {
   return (
     <Page 
       backAction={{ content: 'Dashboard', url: '/app' }} 
-      title="Pincode-Based Dynamic Pricing - Coverage Hub"
+      title="Markets & Coverage"
+      subtitle="Manage your regional geography and delivery zones."
       primaryAction={{ content: 'Bulk Import', icon: ImportIcon, onAction: () => setImportModalOpen(true) }}
-      secondaryActions={[{ content: 'Export All', icon: ExportIcon, onAction: handleExport }]}
+      secondaryActions={[{ content: 'Export Data', icon: ExportIcon, onAction: handleExport }]}
     >
-      <BlockStack gap="500">
+      <BlockStack gap="600">
+        {/* Coverage Intelligence Row */}
+        <Grid>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 4}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Total Markets</Text>
+                       <Icon source={LocationIcon} tone="info" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{regions.length} Active Regions</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 4}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Mapped Pincodes</Text>
+                       <Icon source={PinIcon} tone="info" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{pincodes.length} Individual Codes</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 4}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Active Ranges</Text>
+                       <Icon source={DatabaseIcon} tone="info" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{pincodeRanges.length} Logic Ranges</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+        </Grid>
+
         <Layout>
           <Layout.Section>
-            <Card padding="0">
-              <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary">
-                <Text variant="headingMd" as="h2">Regional Coverage</Text>
-              </Box>
+            <BlockStack gap="400">
+              <InlineStack align="space-between" blockAlign="center">
+                 <Text variant="headingMd" as="h2">Regional Identity Centers</Text>
+                 <InlineStack gap="200">
+                    <ButtonGroup variant="segmented">
+                        <Button pressed={viewMode === 'list'} onClick={() => setViewMode('list')} icon={ListBulletedIcon}>List</Button>
+                        <Button pressed={viewMode === 'card'} onClick={() => setViewMode('card')} icon={AppsIcon}>Cards</Button>
+                    </ButtonGroup>
+                    <Badge tone="info">{`${regions.length} Configured`}</Badge>
+                 </InlineStack>
+              </InlineStack>
+              
               {regions.length === 0 ? (
-                <EmptyState heading="No regions found" action={{ content: 'Go Home', url: '/app' }} image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
-                   <p>Create a region from the dashboard to start mapping pincodes.</p>
-                </EmptyState>
-              ) : (
-                <ResourceList
-                  resourceName={{singular: 'region', plural: 'regions'}}
-                  items={regions}
-                  renderItem={(region: any) => {
-                    const ruleCount = region._count.pricingRules + region._count.productRules + region._count.collectionRules;
+                <Card>
+                  <EmptyState heading="No regions found" action={{ content: 'Go Home', url: '/app' }} image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
+                    <p>Create a region from the dashboard to start mapping pincodes.</p>
+                  </EmptyState>
+                </Card>
+              ) : viewMode === 'card' ? (
+                <Grid>
+                  {regions.map((region: any) => {
+                    const ruleCount = (region._count.pricingRules || 0) + (region._count.productRules || 0) + (region._count.collectionRules || 0);
                     return (
-                      <ResourceItem id={region.id} onClick={() => handleManage(region)}>
-                        <InlineStack align="space-between" blockAlign="center">
-                           <InlineStack gap="300" blockAlign="center">
-                              <Avatar customer name={region.name} size="md" />
-                              <BlockStack gap="050">
-                                 <Text variant="bodyMd" fontWeight="bold" as="h3">{region.name}</Text>
-                                 <InlineStack gap="200" blockAlign="center">
-                                    <Badge tone="info">{`${region._count.pincodes} Codes`}</Badge>
-                                    {region._count.pincodeRanges > 0 && <Badge tone="attention">{`${region._count.pincodeRanges} Ranges`}</Badge>}
-                                    {ruleCount > 0 && <Badge tone="success">{`${ruleCount} Rules`}</Badge>}
-                                 </InlineStack>
-                              </BlockStack>
-                           </InlineStack>
-                           <Button icon={EditIcon} variant="tertiary" onClick={() => handleManage(region)}>Edit Coverage</Button>
-                        </InlineStack>
-                      </ResourceItem>
+                      <Grid.Cell key={region.id} columnSpan={{xs: 6, sm: 3, md: 6, lg: 6}}>
+                         <Card padding="0">
+                            <Box padding="400">
+                               <BlockStack gap="400">
+                                  <InlineStack align="space-between" blockAlign="center">
+                                     <InlineStack gap="300" blockAlign="center">
+                                        <Avatar customer name={region.name} size="md" />
+                                        <BlockStack gap="0">
+                                           <Text variant="headingMd" as="h3">{region.name}</Text>
+                                           <Text variant="bodySm" tone="subdued" as="p">{region._count.pincodes + (region._count.pincodeRanges * 50)} total points approximate</Text>
+                                        </BlockStack>
+                                     </InlineStack>
+                                     <Badge tone={region.status === 'active' ? 'success' : 'attention'}>{String(region.status)}</Badge>
+                                  </InlineStack>
+                                  
+                                  <Box padding="300" background="bg-surface-secondary" borderRadius="200">
+                                     <Grid>
+                                        <Grid.Cell columnSpan={{xs: 2, md: 4}}>
+                                           <BlockStack align="center" gap="100">
+                                              <Text variant="headingSm" as="p" alignment="center">{region._count.pincodes}</Text>
+                                              <Text variant="bodyXs" tone="subdued" as="p" alignment="center">Codes</Text>
+                                           </BlockStack>
+                                        </Grid.Cell>
+                                        <Grid.Cell columnSpan={{xs: 2, md: 4}}>
+                                           <BlockStack align="center" gap="100">
+                                              <Text variant="headingSm" as="p" alignment="center">{region._count.pincodeRanges}</Text>
+                                              <Text variant="bodyXs" tone="subdued" as="p" alignment="center">Ranges</Text>
+                                           </BlockStack>
+                                        </Grid.Cell>
+                                        <Grid.Cell columnSpan={{xs: 2, md: 4}}>
+                                           <BlockStack align="center" gap="100">
+                                              <Text variant="headingSm" as="p" alignment="center">{ruleCount}</Text>
+                                              <Text variant="bodyXs" tone="subdued" as="p" alignment="center">Active Rules</Text>
+                                           </BlockStack>
+                                        </Grid.Cell>
+                                     </Grid>
+                                  </Box>
+
+                                  <InlineStack gap="200" align="end">
+                                     <Button icon={PlusIcon} onClick={() => handleManage(region)}>Manage Pincodes</Button>
+                                  </InlineStack>
+                               </BlockStack>
+                            </Box>
+                         </Card>
+                      </Grid.Cell>
                     );
-                  }}
-                />
+                  })}
+                </Grid>
+              ) : (
+                <Card padding="0">
+                    <ResourceList
+                        resourceName={{ singular: 'region', plural: 'regions' }}
+                        items={regions}
+                        renderItem={(region: any) => {
+                            const ruleCount = (region._count.pricingRules || 0) + (region._count.productRules || 0) + (region._count.collectionRules || 0);
+                            return (
+                                <ResourceItem id={region.id} onClick={() => handleManage(region)}>
+                                    <InlineStack align="space-between" blockAlign="center">
+                                        <InlineStack gap="400" blockAlign="center">
+                                            <Avatar customer size="md" name={region.name} />
+                                            <BlockStack gap="100">
+                                                <Text variant="headingMd" as="h3">{region.name}</Text>
+                                                <InlineStack gap="200">
+                                                    <Badge tone="info" size="small">{`${region._count.pincodes} Codes`}</Badge>
+                                                    <Badge tone="info" size="small">{`${region._count.pincodeRanges} Ranges`}</Badge>
+                                                </InlineStack>
+                                            </BlockStack>
+                                        </InlineStack>
+                                        <InlineStack gap="400" blockAlign="center">
+                                            <BlockStack align="end">
+                                                <Text variant="bodySm" tone="subdued" as="p">{ruleCount} Rules Attached</Text>
+                                                <Badge tone={region.status === 'active' ? 'success' : 'attention'}>{String(region.status)}</Badge>
+                                            </BlockStack>
+                                            <Button icon={PlusIcon} variant="tertiary" onClick={() => handleManage(region)} />
+                                        </InlineStack>
+                                    </InlineStack>
+                                </ResourceItem>
+                            );
+                        }}
+                    />
+                </Card>
               )}
-            </Card>
+            </BlockStack>
           </Layout.Section>
         </Layout>
       </BlockStack>
@@ -251,9 +370,9 @@ export default function Pincodes() {
         <Modal
           open={manageModalOpen}
           onClose={() => setManageModalOpen(false)}
-          title={`Coverage Editor: ${activeRegion.name}`}
+          title={`Coverage Center: ${activeRegion.name}`}
           primaryAction={{
-            content: 'Save Changes',
+            content: 'Save Geographic Data',
             onAction: () => {
               fetcher.submit({ intent: "save_pincodes", regionId: activeRegion.id, pincodes: editingPincodes }, { method: "POST" });
               setManageModalOpen(false);
@@ -263,25 +382,31 @@ export default function Pincodes() {
           }}
         >
           <Modal.Section>
-            <BlockStack gap="400">
-               <Banner tone="info">
-                  <Text as="p">Separate pincodes with commas. Use a hyphen for ranges (e.g. 110001-110050).</Text>
-               </Banner>
+            <BlockStack gap="500">
+               <Box padding="400" background="bg-surface-secondary" borderRadius="300">
+                  <BlockStack gap="200">
+                     <InlineStack gap="200" blockAlign="center"><Icon source={SearchIcon} tone="info" /><Text variant="headingSm" as="h3">Mapping Instructions</Text></InlineStack>
+                     <Text variant="bodySm" tone="subdued" as="p">
+                        Enter individual pincodes (e.g., <b>110001</b>) or ranges (e.g., <b>110001-110050</b>). Multi-line or comma-separated supported.
+                     </Text>
+                  </BlockStack>
+               </Box>
               <TextField 
-                label="Pincodes & Ranges" 
+                label="Active Coverage Map" 
                 value={editingPincodes} 
                 onChange={setEditingPincodes} 
-                multiline={6} 
+                multiline={8} 
                 autoComplete="off" 
                 placeholder="110001, 110002, 110010-110050" 
               />
-              <Divider />
-              <InlineStack gap="200" blockAlign="center">
-                 <Text variant="bodySm" as="span">Presets:</Text>
-                 <Button size="slim" onClick={() => setEditingPincodes((p: string) => (p ? p + ", " : "") + "110000-110099")}>Delhi</Button>
-                 <Button size="slim" onClick={() => setEditingPincodes((p: string) => (p ? p + ", " : "") + "400001-400099")}>Mumbai</Button>
-                 <Button size="slim" onClick={() => setEditingPincodes((p: string) => (p ? p + ", " : "") + "560001-560099")}>Bangalore</Button>
-              </InlineStack>
+              <BlockStack gap="200">
+                 <Text variant="headingSm" as="h4">Common Metro Presets</Text>
+                 <InlineStack gap="200">
+                    <Button variant="secondary" size="slim" onClick={() => setEditingPincodes((p: string) => (p ? p + ", " : "") + "110000-110099")}>Delhi NCR</Button>
+                    <Button variant="secondary" size="slim" onClick={() => setEditingPincodes((p: string) => (p ? p + ", " : "") + "400001-400099")}>Mumbai Central</Button>
+                    <Button variant="secondary" size="slim" onClick={() => setEditingPincodes((p: string) => (p ? p + ", " : "") + "560001-560099")}>Bangalore Core</Button>
+                 </InlineStack>
+              </BlockStack>
             </BlockStack>
           </Modal.Section>
         </Modal>

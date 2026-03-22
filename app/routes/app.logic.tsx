@@ -24,6 +24,9 @@ import {
   EmptyState,
   Avatar,
   SkeletonPage,
+  Grid,
+  ButtonGroup,
+  Tooltip,
 } from "@shopify/polaris";
 import {
   PlusIcon,
@@ -34,6 +37,15 @@ import {
   CollectionIcon,
   ProductIcon,
   ChevronRightIcon,
+  CalendarIcon,
+  SettingsIcon,
+  ViewIcon,
+  PinIcon,
+  AdjustIcon,
+  CheckIcon,
+  ListBulletedIcon,
+  AppsIcon,
+  InfoIcon,
 } from "@shopify/polaris-icons";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -44,11 +56,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const [regions, pricingRules, productRules, collectionRules, colResponse] = await Promise.all([
+  const [regions, pricingRules, productRules, collectionRules, tagRules, colResponse] = await Promise.all([
     prisma.region.findMany({ where: { shop }, orderBy: { name: 'asc' } }),
     prisma.pricingRule.findMany({ where: { shop }, include: { region: true } }),
     prisma.productRegionRule.findMany({ where: { shop } }),
     prisma.collectionRegionRule.findMany({ where: { shop } }),
+    (prisma as any).tagRegionRule.findMany({ where: { shop }, include: { region: true } }),
     admin.graphql(`query { collections(first: 50) { nodes { id title handle } } }`)
   ]);
 
@@ -56,7 +69,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const collections = colData.data.collections.nodes;
   const cacheCount = await prisma.productCache.count({ where: { shop } });
 
-  return json({ regions, pricingRules, productRules, collectionRules, collections, cacheCount });
+  return json({ regions, pricingRules, productRules, collectionRules, tagRules, collections, cacheCount });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -188,11 +201,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ success: true });
   }
 
+  // Tag Rule Persistence
+  if (intent === "tag-save") {
+    await (prisma as any).tagRegionRule.create({
+      data: {
+        shop,
+        tag: formData.get("tag") as string,
+        regionId: formData.get("regionId") as string,
+        allowed: formData.get("allowed") === "true",
+      }
+    });
+    return json({ success: true });
+  }
+
+  if (intent === "tag-delete") {
+    await (prisma as any).tagRegionRule.delete({ where: { id: formData.get("id") as string } });
+    return json({ success: true });
+  }
+
   return json({ success: true });
 };
 
 export default function RegionalLogic() {
-  const { regions, pricingRules, productRules, collectionRules, collections, cacheCount } = useLoaderData<typeof loader>();
+  const { regions, pricingRules, productRules, collectionRules, tagRules, collections, cacheCount } = useLoaderData<typeof loader>();
   const submit = useSubmit();
   const fetcher = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -204,11 +235,15 @@ export default function RegionalLogic() {
   const [activeRegionId, setActiveRegionId] = useState<string>(regions[0]?.id || "");
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [editingPricing, setEditingPricing] = useState<any>(null);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [newTagRule, setNewTagRule] = useState({ tag: "", regionId: regions[0]?.id || "", allowed: "false" });
+  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
 
   const tabs = [
-    { id: 'pricing', content: 'Pricing Adjustments', accessibilityLabel: 'Pricing Adjustments', panelID: 'pricing-panel' },
-    { id: 'visibility', content: 'Visibility Control', accessibilityLabel: 'Visibility Control', panelID: 'visibility-panel' },
-    { id: 'flash', content: 'Flash Sales', accessibilityLabel: 'Flash Sales', panelID: 'flash-panel' },
+    { id: 'pricing', content: 'Price Settings', panelID: 'pricing-panel' },
+    { id: 'visibility', content: 'Hide Products', panelID: 'visibility-panel' },
+    { id: 'tags', content: 'Automatic Rules', panelID: 'tags-panel' },
+    { id: 'flash', content: 'Sales & Offers', panelID: 'flash-panel' },
   ];
 
   const handleTabChange = useCallback((selectedTabIndex: number) => {
@@ -247,77 +282,239 @@ export default function RegionalLogic() {
   return (
     <Page 
         fullWidth
-        title="Pincode-Based Dynamic Pricing - Logic Hub" 
+        title="Regional Rules Hub" 
+        subtitle="Orchestrate your cross-region pricing and availability logic."
         backAction={{ content: 'Dashboard', url: '/app' }}
-        primaryAction={selectedTab === 0 ? { content: 'Add Pricing Rule', icon: PlusIcon, onAction: () => openPricingEditor() } : undefined}
+        primaryAction={selectedTab === 0 ? { content: 'Create Logic Rule', icon: PlusIcon, onAction: () => openPricingEditor() } : selectedTab === 2 ? { content: 'Create Tag Rule', icon: PlusIcon, onAction: () => setTagModalOpen(true) } : undefined}
     >
-      <BlockStack gap="500">
-        <Tabs tabs={tabs} selected={selectedTab} onSelect={handleTabChange}>
-            <Box paddingInlineStart="400" paddingInlineEnd="400" paddingBlockStart="400">
+      <BlockStack gap="600">
+        {/* Hub Intelligence Row */}
+        <Grid>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Pricing Rules</Text>
+                       <Icon source={AdjustIcon} tone="info" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{pricingRules.length} Active</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Visibility Bans</Text>
+                       <Icon source={ViewIcon} tone="critical" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{productRules.length + collectionRules.length} Restrictions</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Tag Flows</Text>
+                       <Icon source={PinIcon} tone="success" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{tagRules.length} Automated</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+           <Grid.Cell columnSpan={{xs: 6, sm: 3, md: 4, lg: 3}}>
+              <Card>
+                 <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                       <Text variant="headingSm" as="h3" tone="subdued">Catalog Sync</Text>
+                       <Icon source={CheckIcon} tone="success" />
+                    </InlineStack>
+                    <Text variant="headingLg" as="p">{cacheCount} Items</Text>
+                 </BlockStack>
+              </Card>
+           </Grid.Cell>
+        </Grid>
+
+        <Layout>
+          <Layout.Section variant="oneThird">
+             <Card padding="0">
+                <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary">
+                   <Text variant="headingMd" as="h2">Logic Pillars</Text>
+                </Box>
+                <Box padding="200">
+                   <BlockStack gap="100">
+                      {[
+                        { id: 0, label: 'Price Settings', icon: AdjustIcon, count: pricingRules.length, desc: "Adjust product prices for different regions (e.g., higher prices in premium areas)." },
+                        { id: 1, label: 'Hide Products', icon: ViewIcon, count: productRules.length + collectionRules.length, desc: "Choose specific products or collections to hide from customers in certain locations." },
+                        { id: 2, label: 'Automatic Rules', icon: PinIcon, count: tagRules.length, desc: "Use product tags (like 'local-only') to automatically show or hide items across regions." },
+                        { id: 3, label: 'Sales & Offers', icon: CalendarIcon, count: pricingRules.filter((r: any) => r.startTime).length, desc: "Schedule special regional discounts or flash sales for specific time periods." }
+                      ].map((item) => {
+                        const isActive = selectedTab === item.id;
+                        return (
+                          <div 
+                            key={item.id} 
+                            style={{ cursor: 'pointer' }} 
+                            onClick={() => handleTabChange(item.id)}
+                          >
+                            <Box 
+                              padding="300" 
+                              borderRadius="200" 
+                              background={isActive ? "bg-surface-secondary" : undefined}
+                              shadow={isActive ? "100" : undefined}
+                              borderInlineStartWidth={isActive ? "100" : "0"}
+                              borderColor="border-info"
+                            >
+                               <InlineStack align="space-between" blockAlign="center">
+                                  <InlineStack gap="300" blockAlign="center">
+                                     <Icon source={item.icon} tone={isActive ? "info" : "subdued"} />
+                                     <InlineStack gap="100" blockAlign="center">
+                                      <Text variant="bodyMd" fontWeight={isActive ? "bold" : "regular"} as="span">
+                                         {item.label}
+                                      </Text>
+                                      <Tooltip content={item.desc} dismissOnMouseOut>
+                                          <Box padding="050">
+                                              <Icon source={InfoIcon} tone="subdued" />
+                                          </Box>
+                                      </Tooltip>
+                                     </InlineStack>
+                                  </InlineStack>
+                                  <Badge tone={isActive ? "info" : undefined} size="small">{item.count}</Badge>
+                               </InlineStack>
+                            </Box>
+                          </div>
+                        );
+                      })}
+                   </BlockStack>
+                </Box>
+             </Card>
+          </Layout.Section>
+
+          <Layout.Section>
+            <Box paddingBlockStart="0">
                 {selectedTab === 0 ? (
-                    <Layout>
-                        <Layout.Section>
-                            <Card padding="0">
-                                {pricingRules.length === 0 ? (
-                                    <EmptyState heading="No pricing adjustments" action={{ content: 'Add Your First Rule', onAction: () => openPricingEditor() }} image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
-                                        <p>Create rules to automatically change prices based on customer location.</p>
-                                    </EmptyState>
-                                ) : (
-                                    <ResourceList
-                                        resourceName={{ singular: 'rule', plural: 'rules' }}
-                                        items={pricingRules}
-                                        renderItem={(rule: any) => (
-                                            <ResourceItem id={rule.id} onClick={() => openPricingEditor(rule)}>
+                    <BlockStack gap="400">
+                        <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingMd" as="h2">Price Settings</Text>
+                            <InlineStack gap="200">
+                                <ButtonGroup variant="segmented">
+                                    <Button pressed={viewMode === 'list'} onClick={() => setViewMode('list')} icon={ListBulletedIcon}>List</Button>
+                                    <Button pressed={viewMode === 'card'} onClick={() => setViewMode('card')} icon={AppsIcon}>Cards</Button>
+                                </ButtonGroup>
+                                <Button variant="tertiary" icon={RefreshIcon} onClick={() => fetcher.submit({ intent: "sync" }, { method: "POST" })}>Sync Catalog</Button>
+                            </InlineStack>
+                        </InlineStack>
+                        
+                        {pricingRules.length === 0 ? (
+                            <Card>
+                                <EmptyState heading="No logic rules defined" action={{ content: 'Create First Rule', onAction: () => openPricingEditor() }} image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
+                                    <p>Define how prices should morph based on visitor location.</p>
+                                </EmptyState>
+                            </Card>
+                        ) : viewMode === 'card' ? (
+                            <Grid>
+                                {pricingRules.map((rule: any) => (
+                                    <Grid.Cell key={rule.id} columnSpan={{xs: 6, sm: 6, md: 6, lg: 6}}>
+                                        <Box 
+                                            borderStyle="solid" 
+                                            borderWidth="050" 
+                                            borderColor="border-emphasis" 
+                                            borderRadius="400" 
+                                            padding="500" 
+                                            background="bg-surface"
+                                            shadow="100"
+                                        >
+                                            <BlockStack gap="400">
+                                            <InlineStack align="space-between">
+                                                <Badge tone="info">{rule.region?.name || "All Regions"}</Badge>
+                                                <InlineStack gap="100">
+                                                    <Button icon={EditIcon} variant="tertiary" onClick={() => openPricingEditor(rule)} />
+                                                    <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => submit({ id: rule.id, intent: 'pricing-delete' }, { method: 'POST' })} />
+                                                </InlineStack>
+                                            </InlineStack>
+                                            
+                                            <BlockStack gap="200">
+                                                <InlineStack gap="300" blockAlign="center">
+                                                    <Box padding="200" background="bg-surface-secondary" borderRadius="full">
+                                                        <Icon source={rule.productId ? ProductIcon : rule.collectionId ? CollectionIcon : SettingsIcon} tone="base" />
+                                                    </Box>
+                                                    <BlockStack gap="050">
+                                                        <Text variant="headingMd" as="h4">
+                                                            {rule.productId ? rule.productHandle : rule.collectionId ? rule.collectionHandle : "Storewide Base"}
+                                                        </Text>
+                                                        <Text variant="bodySm" tone="subdued" as="p">{rule.productId ? "Specific Product" : rule.collectionId ? "Collection Scope" : "Global Adjustment"}</Text>
+                                                    </BlockStack>
+                                                </InlineStack>
+                                            </BlockStack>
+
+                                            <Box padding="400" background="bg-surface-tertiary" borderRadius="200" borderStyle="dashed" borderWidth="025" borderColor="border-info">
                                                 <InlineStack align="space-between" blockAlign="center">
+                                                    <BlockStack gap="100">
+                                                        <Text variant="bodySm" tone="subdued" as="p">Logic Action</Text>
+                                                        <Text variant="headingXl" as="span" tone="success">
+                                                            {rule.type === 'percentage' ? `${rule.value}x` : rule.type === 'fixed_adjustment' ? `${rule.value > 0 ? '+' : ''}${rule.value}` : `Override: ${rule.value}`}
+                                                        </Text>
+                                                    </BlockStack>
+                                                    {rule.startTime && (
+                                                        <Badge icon={CalendarIcon} tone="attention">On Schedule</Badge>
+                                                    )}
+                                                </InlineStack>
+                                            </Box>
+                                            </BlockStack>
+                                        </Box>
+                                    </Grid.Cell>
+                                ))}
+                            </Grid>
+                        ) : (
+                            <Card padding="0">
+                                <ResourceList
+                                    resourceName={{ singular: 'rule', plural: 'rules' }}
+                                    items={pricingRules}
+                                    renderItem={(rule: any) => (
+                                        <ResourceItem id={rule.id} onClick={() => openPricingEditor(rule)}>
+                                            <InlineStack align="space-between" blockAlign="center">
+                                                <InlineStack gap="400" blockAlign="center">
+                                                    <Box padding="200" background="bg-surface-secondary" borderRadius="full">
+                                                        <Icon source={rule.productId ? ProductIcon : rule.collectionId ? CollectionIcon : SettingsIcon} tone="subdued" />
+                                                    </Box>
                                                     <BlockStack gap="100">
                                                         <InlineStack gap="200" blockAlign="center">
                                                             <Badge tone="info">{rule.region?.name || "Global"}</Badge>
                                                             <Text variant="bodyMd" fontWeight="bold" as="span">
-                                                                {rule.productId ? `Product: ${rule.productHandle}` : rule.collectionId ? `Collection: ${rule.collectionHandle}` : "Global Adjustment"}
+                                                                {rule.productId ? rule.productHandle : rule.collectionId ? rule.collectionHandle : "Global Storewide"}
                                                             </Text>
-                                                            <Badge tone="success">{`${rule.value}${rule.type === 'percentage' ? 'x' : ''}`}</Badge>
                                                         </InlineStack>
-                                                        {rule.startTime && <Text variant="bodySm" tone="subdued" as="p">{`Active from: ${new Date(rule.startTime).toLocaleDateString()}`}</Text>}
+                                                        {rule.startTime && <Text variant="bodySm" tone="subdued" as="p">{`Scheduled: ${new Date(rule.startTime).toLocaleDateString()}`}</Text>}
                                                     </BlockStack>
+                                                </InlineStack>
+                                                <InlineStack gap="400" blockAlign="center">
+                                                    <Text variant="headingMd" tone="success" as="span">
+                                                        {rule.type === 'percentage' ? `${rule.value}x` : rule.type === 'fixed_adjustment' ? `${rule.value > 0 ? '+' : ''}${rule.value}` : `Override: ${rule.value}`}
+                                                    </Text>
                                                     <InlineStack gap="100">
                                                         <Button icon={EditIcon} variant="tertiary" onClick={() => openPricingEditor(rule)} />
                                                         <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => submit({ id: rule.id, intent: 'pricing-delete' }, { method: 'POST' })} />
                                                     </InlineStack>
                                                 </InlineStack>
-                                            </ResourceItem>
-                                        )}
-                                    />
-                                )}
+                                            </InlineStack>
+                                        </ResourceItem>
+                                    )}
+                                />
                             </Card>
-                        </Layout.Section>
-                        <Layout.Section variant="oneThird">
-                            <BlockStack gap="500">
-                                <Card>
-                                    <BlockStack gap="300">
-                                        <Text variant="headingMd" as="h2">Logic Settings</Text>
-                                        <Text variant="bodySm" tone="subdued" as="p">Keep your catalog in sync to ensure rules apply correctly to new products.</Text>
-                                        <Button 
-                                            icon={RefreshIcon} 
-                                            fullWidth 
-                                            onClick={() => fetcher.submit({ intent: "sync" }, { method: "POST" })}
-                                            loading={fetcher.state === 'submitting' && fetcher.formData?.get('intent') === 'sync'}
-                                        >
-                                            {`Sync Catalog (${cacheCount})`}
-                                        </Button>
-                                    </BlockStack>
-                                </Card>
-                                <Banner tone="info">
-                                    <Text as="p">Pricing rules are additive. Multipliers apply first, followed by fixed adjustments.</Text>
-                                </Banner>
-                            </BlockStack>
-                        </Layout.Section>
-                    </Layout>
+                        )}
+
+                        <Box paddingBlockStart="400">
+                             <Banner tone="info" title="Pricing Engine Logic">
+                                <Text as="p">Multiplier rules (e.g. 1.2x) are applied to the base price first. Fixed adjustments are added afterwards.</Text>
+                            </Banner>
+                        </Box>
+                    </BlockStack>
                 ) : selectedTab === 1 ? (
                     <Layout>
                         <Layout.Section variant="oneThird">
                             <Card padding="0">
                                 <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary">
-                                    <Text variant="headingMd" as="h2">Target Regions</Text>
+                                    <Text variant="headingMd" as="h2">Filter By Region</Text>
                                 </Box>
                                 <ResourceList
                                     resourceName={{ singular: 'region', plural: 'regions' }}
@@ -345,7 +542,7 @@ export default function RegionalLogic() {
                                     <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary">
                                         <InlineStack align="space-between" blockAlign="center">
                                             <BlockStack gap="100">
-                                                <Text variant="headingMd" as="h2">{`Visibility: ${activeRegion.name}`}</Text>
+                                                <Text variant="headingMd" as="h2">{`Hide Products: ${activeRegion.name}`}</Text>
                                                 <Text variant="bodySm" tone="subdued" as="p">Select items to HIDE for this region.</Text>
                                             </BlockStack>
                                             <InlineStack gap="200">
@@ -397,67 +594,105 @@ export default function RegionalLogic() {
                                     </Box>
                                 </Card>
                             ) : (
-                                <EmptyState heading="Select a region" image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" />
+                                <Card>
+                                     <EmptyState heading="Select a region" image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
+                                         <p>Choose a region from the filter list to manage its custom visibility rules.</p>
+                                     </EmptyState>
+                                </Card>
                             )}
                         </Layout.Section>
                     </Layout>
-                ) : (
-                    <Layout>
-                        <Layout.Section>
-                            <Banner title="Scheduled Events & Flash Sales" tone="success">
-                                <p>Scheduled rules automatically activate/deactivate based on the time windows below. Focus on regional events or time-limited offers.</p>
-                            </Banner>
-                            <Box paddingBlockStart="400">
-                                <Card padding="0">
-                                    <ResourceList
-                                        resourceName={{ singular: 'sale', plural: 'sales' }}
-                                        items={pricingRules.filter((r: any) => r.startTime)}
-                                        renderItem={(rule: any) => {
-                                            const start = new Date(rule.startTime!);
-                                            const end = rule.endTime ? new Date(rule.endTime) : null;
-                                            const now = new Date();
-                                            const isActive = start <= now && (!end || end >= now);
-                                            const isUpcoming = start > now;
-
-                                            return (
-                                                <ResourceItem id={rule.id} onClick={() => openPricingEditor(rule)}>
-                                                    <InlineStack align="space-between" blockAlign="center">
-                                                        <BlockStack gap="100">
-                                                            <InlineStack gap="200" blockAlign="center">
-                                                                <Text variant="bodyMd" fontWeight="bold" as="h3">
-                                                                    {rule.value}{rule.type === 'percentage' ? 'x' : ''} 
-                                                                    {rule.productId ? ` (Product: ${rule.productHandle})` : rule.collectionId ? ` (Col: ${rule.collectionHandle})` : ' (Global)'}
-                                                                </Text>
-                                                                <Badge tone={isActive ? "success" : isUpcoming ? "attention" : "info"}>
-                                                                    {isActive ? "ACTIVE" : isUpcoming ? "UPCOMING" : "EXPIRED"}
-                                                                </Badge>
-                                                                <Badge tone="info">{rule.region?.name || "All Regions"}</Badge>
-                                                            </InlineStack>
-                                                            <Text variant="bodySm" tone="subdued" as="p">
-                                                                {start.toLocaleString()} {end ? `- ${end.toLocaleString()}` : '(No End)'}
-                                                            </Text>
-                                                        </BlockStack>
-                                                        <InlineStack gap="100">
-                                                            <Button icon={EditIcon} variant="tertiary" onClick={() => openPricingEditor(rule)} />
-                                                            <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => submit({ id: rule.id, intent: 'pricing-delete' }, { method: 'POST' })} />
-                                                        </InlineStack>
-                                                    </InlineStack>
-                                                </ResourceItem>
-                                            );
-                                        }}
-                                    />
-                                    {pricingRules.filter((r: any) => r.startTime).length === 0 && (
-                                        <EmptyState heading="No events scheduled" image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" action={{ content: 'Schedule Flash Sale', onAction: () => openPricingEditor() }}>
-                                            <p>Create a pricing rule with a start and end time to see it here.</p>
-                                        </EmptyState>
-                                    )}
-                                </Card>
+                ) : selectedTab === 2 ? (
+                    <BlockStack gap="400">
+                        <Card padding="0">
+                            <Box padding="400" borderBlockEndWidth="025" borderColor="border-secondary">
+                                <InlineStack align="space-between">
+                                    <Text variant="headingMd" as="h2">Automatic Rules</Text>
+                                    <Button variant="primary" icon={PlusIcon} onClick={() => setTagModalOpen(true)}>Add Tag Rule</Button>
+                                </InlineStack>
                             </Box>
-                        </Layout.Section>
-                    </Layout>
+                            <ResourceList
+                                resourceName={{ singular: 'rule', plural: 'rules' }}
+                                items={tagRules}
+                                renderItem={(rule: any) => (
+                                    <ResourceItem id={rule.id} onClick={() => {}}>
+                                        <InlineStack align="space-between" blockAlign="center">
+                                            <BlockStack gap="100">
+                                                <InlineStack gap="200" blockAlign="center">
+                                                    <Badge tone="info">{rule.tag}</Badge>
+                                                    <Text variant="bodyMd" as="span">is <b>{rule.allowed ? "Allowed" : "Restricted"}</b> in</Text>
+                                                    <Badge tone="info">{rule.region.name}</Badge>
+                                                </InlineStack>
+                                            </BlockStack>
+                                            <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => submit({ id: rule.id, intent: 'tag-delete' }, { method: "POST" })}>Remove</Button>
+                                        </InlineStack>
+                                    </ResourceItem>
+                                )}
+                            />
+                            {tagRules.length === 0 && (
+                                <EmptyState heading="No tag rules" action={{ content: 'Add Your First Rule', onAction: () => setTagModalOpen(true) }} image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
+                                    <p>Automatically allow or restrict products based on their Shopify tags.</p>
+                                </EmptyState>
+                            )}
+                        </Card>
+                        <Banner title="Pro Tip: Bulk Management" icon={SettingsIcon}>
+                             <p>Tag rules are great for bulk management. For example, tag fragile items with <code>local-only</code> and restrict that tag in distant regions.</p>
+                        </Banner>
+                    </BlockStack>
+                ) : (
+                    <BlockStack gap="400">
+                        <Banner title="Sales & Offers" tone="success">
+                            <p>Scheduled rules automatically activate/deactivate based on the time windows below. Focus on regional events or time-limited offers.</p>
+                        </Banner>
+                        <Card padding="0">
+                            <ResourceList
+                                resourceName={{ singular: 'sale', plural: 'sales' }}
+                                items={pricingRules.filter((r: any) => r.startTime)}
+                                renderItem={(rule: any) => {
+                                    const start = new Date(rule.startTime!);
+                                    const end = rule.endTime ? new Date(rule.endTime) : null;
+                                    const now = new Date();
+                                    const isActive = start <= now && (!end || end >= now);
+                                    const isUpcoming = start > now;
+
+                                    return (
+                                        <ResourceItem id={rule.id} onClick={() => openPricingEditor(rule)}>
+                                            <InlineStack align="space-between" blockAlign="center">
+                                                <BlockStack gap="100">
+                                                    <InlineStack gap="200" blockAlign="center">
+                                                        <Text variant="bodyMd" fontWeight="bold" as="h3">
+                                                            {rule.value}{rule.type === 'percentage' ? 'x' : ''} 
+                                                            {rule.productId ? ` (Product: ${rule.productHandle})` : rule.collectionId ? ` (Col: ${rule.collectionHandle})` : ' (Global)'}
+                                                        </Text>
+                                                        <Badge tone={isActive ? "success" : isUpcoming ? "attention" : "info"}>
+                                                            {isActive ? "ACTIVE" : isUpcoming ? "UPCOMING" : "EXPIRED"}
+                                                        </Badge>
+                                                        <Badge tone="info">{rule.region?.name || "All Regions"}</Badge>
+                                                    </InlineStack>
+                                                    <Text variant="bodySm" tone="subdued" as="p">
+                                                        {start.toLocaleString()} {end ? `- ${end.toLocaleString()}` : '(No End)'}
+                                                    </Text>
+                                                </BlockStack>
+                                                <InlineStack gap="100">
+                                                    <Button icon={EditIcon} variant="tertiary" onClick={() => openPricingEditor(rule)} />
+                                                    <Button icon={DeleteIcon} tone="critical" variant="tertiary" onClick={() => submit({ id: rule.id, intent: 'pricing-delete' }, { method: 'POST' })} />
+                                                </InlineStack>
+                                            </InlineStack>
+                                        </ResourceItem>
+                                    );
+                                }}
+                            />
+                            {pricingRules.filter((r: any) => r.startTime).length === 0 && (
+                                <EmptyState heading="No events scheduled" image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png" action={{ content: 'Schedule Flash Sale', onAction: () => openPricingEditor() }}>
+                                    <p>Create a pricing rule with a start and end time to see it here.</p>
+                                </EmptyState>
+                            )}
+                        </Card>
+                    </BlockStack>
                 )}
             </Box>
-        </Tabs>
+          </Layout.Section>
+        </Layout>
       </BlockStack>
 
       {/* Pricing Rule Editor */}
@@ -519,6 +754,25 @@ export default function RegionalLogic() {
             </Modal.Section>
         </Modal>
       )}
+
+      {/* Tag Rule Modal */}
+      <Modal
+        open={tagModalOpen}
+        onClose={() => setTagModalOpen(false)}
+        title="Add New Tag Rule"
+        primaryAction={{
+          content: 'Add Rule',
+          onAction: () => { submit({ ...newTagRule, intent: 'tag-save' }, { method: "POST" }); setTagModalOpen(false); }
+        }}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <TextField label="Product Tag" value={newTagRule.tag} onChange={(v) => setNewTagRule(prev => ({ ...prev, tag: v }))} autoComplete="off" placeholder="e.g. glass-items, local-exclusive" />
+            <Select label="In Region" options={regions.map(r => ({ label: r.name, value: r.id }))} value={newTagRule.regionId} onChange={(v) => setNewTagRule(prev => ({ ...prev, regionId: v }))} />
+            <Select label="Action" options={[{ label: 'Allow', value: 'true' }, { label: 'Restrict', value: 'false' }]} value={newTagRule.allowed} onChange={(v) => setNewTagRule(prev => ({ ...prev, allowed: v }))} />
+          </BlockStack>
+        </Modal.Section>
+      </Modal>
     </Page>
   );
 }

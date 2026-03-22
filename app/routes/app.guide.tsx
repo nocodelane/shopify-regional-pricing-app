@@ -5,233 +5,259 @@ import {
   BlockStack,
   Text,
   InlineStack,
-  CalloutCard,
   Divider,
-  List,
   Badge,
   Grid,
   Box,
   Icon,
   Banner,
+  Button,
+  ProgressBar,
+  List,
 } from "@shopify/polaris";
 import {
-  CashDollarIcon,
   ViewIcon,
-  LocationIcon,
   CheckCircleIcon,
   ChevronRightIcon,
   MagicIcon,
   InfoIcon,
   SearchIcon,
   AppsIcon,
-  CodeIcon,
+  FlagIcon,
+  TargetIcon,
+  ChartLineIcon,
+  PlayIcon,
 } from "@shopify/polaris-icons";
 
 export default function AppGuide() {
   return (
-    <Page title="The Regional Playbook" subtitle="Master the tools to scale your business locally.">
+    <Page 
+        title="Launch Blueprint" 
+        subtitle="Your strategic roadmap to regional market dominance."
+        primaryAction={{ content: 'Initialize Setup', icon: PlayIcon }}
+    >
       <BlockStack gap="600">
         
-        {/* Intro Banner */}
-        <CalloutCard
-          title="Welcome to Pincode-Based Dynamic Pricing"
-          illustration="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
-          primaryAction={{
-            content: "Set up my first Region",
-            url: "/app/pincodes",
-          }}
-        >
-          <p>
-            Your store is no longer confined to a single global strategy. 
-            This app empowers you to <b>personalize prices, hide restricted items, and show localized content</b> based strictly on the exact location your customer is shopping from.
-          </p>
-        </CalloutCard>
-
-        {/* Toolkit Header */}
-        <Box paddingBlockStart="400">
-            <BlockStack gap="200">
-                <Text variant="headingLg" as="h2">Your Regional Toolkit</Text>
-                <Text tone="subdued" as="p">Choose the method that best fits your theme and workflow.</Text>
-            </BlockStack>
-        </Box>
-
-        <Layout>
-          {/* Method 1: The Easiest Way */}
-          <Layout.Section variant="oneThird">
-            <BlockStack gap="400">
-                <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                    <BlockStack gap="300">
-                        <InlineStack gap="200">
-                            <Icon source={MagicIcon} tone="magic" />
-                            <Badge tone="magic">Easy Mode</Badge>
-                        </InlineStack>
-                        <Text variant="headingMd" as="h3">Visibility Tags</Text>
-                        <Text tone="subdued" as="p">The most natural way to control visibility directly in the Theme Editor.</Text>
-                    </BlockStack>
-                </Box>
-            </BlockStack>
-          </Layout.Section>
-          <Layout.Section >
-            <Card>
-                <BlockStack gap="400">
-                    <Text variant="bodyMd" as="p">
-                        Add a small "Tag" block <b>inside</b> any existing theme section (like an Image Banner or Featured Collection).
-                    </Text>
-                    <List>
-                        <List.Item><b>How to use:</b> Inside your section, click <b>"Add Block"</b> → select <code>Regional Visibility Tag</code>.</List.Item>
-                        <List.Item><b>Configuration:</b> Enter the region name in the block settings. The entire parent section will automatically hide for other regions.</List.Item>
-                        <List.Item><b>Zero Flicker:</b> Our engine hides the section before the page even paints.</List.Item>
-                    </List>
-                </BlockStack>
-            </Card>
-          </Layout.Section>
-
-          {/* Method 2: Professional Guards */}
-          <Layout.Section variant="oneThird">
-            <BlockStack gap="400">
-                <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                    <BlockStack gap="300">
-                        <InlineStack gap="200">
-                            <Icon source={ViewIcon} tone="info" />
-                            <Badge tone="info">Professional</Badge>
-                        </InlineStack>
-                        <Text variant="headingMd" as="h3">Visibility Guards</Text>
-                        <Text tone="subdued" as="p">Control any series of sections by dragging a "Guard" above them.</Text>
-                    </BlockStack>
-                </Box>
-            </BlockStack>
-          </Layout.Section>
-          <Layout.Section >
-            <Card>
-                <BlockStack gap="400">
-                    <Text variant="bodyMd" as="p">
-                        Perfect for sections that don't support app blocks or for locking down an entire page area.
-                    </Text>
-                    <List>
-                        <List.Item><b>How to use:</b> In the Theme Editor sidebar, add the <code>Regional Visibility Guard</code> section.</List.Item>
-                        <List.Item><b>Placement:</b> Drag it directly <b>above</b> the section you want to control.</List.Item>
-                        <List.Item><b>Strict Control:</b> Use "Invert Logic" to hide sections for specific regions while showing them globally.</List.Item>
-                    </List>
-                </BlockStack>
-            </Card>
-          </Layout.Section>
-
-          {/* Method 3: Expert Classes */}
-          <Layout.Section variant="oneThird">
-            <BlockStack gap="400">
-                <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                    <BlockStack gap="300">
-                        <InlineStack gap="200">
-                            <Icon source={SearchIcon} tone="warning" />
-                            <Badge tone="warning">Expert</Badge>
-                        </InlineStack>
-                        <Text variant="headingMd" as="h3">Universal CSS Classes</Text>
-                        <Text tone="subdued" as="p">The ultimate zero-block method for theme developers.</Text>
-                    </BlockStack>
-                </Box>
-            </BlockStack>
-          </Layout.Section>
-          <Layout.Section >
-            <Card>
-                <BlockStack gap="400">
-                    <Text variant="bodyMd" as="p">
-                        No app blocks needed. Simply tag sections using their native "CSS Class" field.
-                    </Text>
-                    <List>
-                        <List.Item><b>The Class:</b> Add <code>region-show-mumbai</code> to any section's class list.</List.Item>
-                        <List.Item><b>The Result:</b> The section will only appear when the customer's region is set to Mumbai.</List.Item>
-                        <List.Item><b>Compatibility:</b> Works with any OS 2.0 theme that supports Section CSS Classes.</List.Item>
-                    </List>
-                </BlockStack>
-            </Card>
-          </Layout.Section>
-
-          {/* Method 4: Dynamic Component Hub */}
-          <Layout.Section variant="oneThird">
-            <BlockStack gap="400">
-                <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-                    <BlockStack gap="300">
-                        <InlineStack gap="200">
-                            <Icon source={AppsIcon} tone="success" />
-                            <Badge tone="success">Advanced</Badge>
-                        </InlineStack>
-                        <Text variant="headingMd" as="h3">Component Hub</Text>
-                        <Text tone="subdued" as="p">Design complex regional layouts once, then place them anywhere.</Text>
-                    </BlockStack>
-                </Box>
-            </BlockStack>
-          </Layout.Section>
-          <Layout.Section >
-            <Card>
-                <BlockStack gap="400">
-                    <Text variant="bodyMd" as="p">
-                        Use our built-in <b>Component Studio</b> to create Countdown Timers, Product Lists, Delivery Widgets, and Custom Liquid.
-                    </Text>
-                    <List>
-                        <List.Item><b>Studio:</b> Create your design in the <code>Experience Tab</code> and get a Component ID.</List.Item>
-                        <List.Item><b>Placement:</b> Add the <code>Regional Placement</code> block in your theme and paste the ID.</List.Item>
-                        <List.Item><b>Multi-Content:</b> One block can show a Banner in Mumbai and a Timer in London.</List.Item>
-                    </List>
-                </BlockStack>
-            </Card>
-          </Layout.Section>
-        </Layout>
-
-        <Divider />
-
-        {/* Technical How it Works */}
-        <Box paddingBlockStart="200">
+        {/* Launch Readiness Tracker */}
+        <Card background="bg-surface-secondary">
           <BlockStack gap="400">
-            <InlineStack gap="200">
-              <Icon source={InfoIcon} tone="base" />
-              <Text variant="headingLg" as="h2">How the Magic Works</Text>
+            <InlineStack align="space-between" blockAlign="center">
+                <BlockStack gap="100">
+                    <Text variant="headingMd" as="h2">Launch Readiness</Text>
+                    <Text variant="bodySm" tone="subdued" as="p">System validation for regional deployment.</Text>
+                </BlockStack>
+                <Badge tone="attention">65% Complete</Badge>
             </InlineStack>
-            <Banner tone="info">
-              <p>Understanding the data flow ensures you can troubleshoot and optimize your regional strategy effectively.</p>
-            </Banner>
-            
-            <Layout>
-               <Layout.Section>
-                  <Card>
-                    <Box padding="500">
-                      <Grid columns={{xs: 2, sm: 3, md: 3}}>
-                        <Grid.Cell columnSpan={{xs: 2, sm: 1, md: 1}}>
-                            <BlockStack gap="300">
-                                <Badge tone="info">1. Detection</Badge>
-                                <Text as="p" variant="bodyMd">Customer enters a Pincode or chooses "Auto-Detect". The choice is saved in a secure browser cookie for persistence.</Text>
-                            </BlockStack>
-                        </Grid.Cell>
-                        <Grid.Cell columnSpan={{xs: 2, sm: 1, md: 1}}>
-                            <BlockStack gap="300">
-                                <Badge tone="attention">2. Identification</Badge>
-                                <Text as="p" variant="bodyMd">Our liquid blocks instantly map that Pincode to your defined <b>Regions</b>. If no match exists, it defaults to your <b>Global Settings</b>.</Text>
-                            </BlockStack>
-                        </Grid.Cell>
-                        <Grid.Cell columnSpan={{xs: 2, sm: 1, md: 1}}>
-                            <BlockStack gap="300">
-                                <Badge tone="success">3. Transformation</Badge>
-                                <Text as="p" variant="bodyMd">The Storefront API returns precise multipliers and visibility rules. Your site content "morphs" to show the correct local price instantly.</Text>
-                            </BlockStack>
-                        </Grid.Cell>
-                      </Grid>
-                    </Box>
-                  </Card>
-               </Layout.Section>
-            </Layout>
+            <ProgressBar progress={65} size="medium" tone="success" />
+            <Grid columns={{ xs: 1, sm: 3, md: 3 }}>
+                <InlineStack gap="200" blockAlign="center">
+                    <Icon source={CheckCircleIcon} tone="success" />
+                    <Text variant="bodySm" as="span">App Embedded</Text>
+                </InlineStack>
+                <InlineStack gap="200" blockAlign="center">
+                    <Icon source={CheckCircleIcon} tone="success" />
+                    <Text variant="bodySm" as="span">Region Defined</Text>
+                </InlineStack>
+                <InlineStack gap="200" blockAlign="center">
+                    <Icon source={InfoIcon} tone="caution" />
+                    <Text variant="bodySm" tone="caution" as="span">Visuals Pending</Text>
+                </InlineStack>
+            </Grid>
           </BlockStack>
+        </Card>
+
+        {/* The Four Pillars */}
+        <Box paddingBlockStart="200">
+            <BlockStack gap="400">
+                <Text variant="headingLg" as="h2">The Strategic Pillars</Text>
+                <Grid gap={{ xs: '400', md: '600' }}>
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3 }}>
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box background="bg-surface-info" padding="300" borderRadius="200" width="fit-content">
+                                    <Icon source={FlagIcon} tone="info" />
+                                </Box>
+                                <BlockStack gap="100">
+                                    <Text variant="headingMd" as="h3">Markets & Coverage</Text>
+                                    <Text variant="bodySm" tone="subdued" as="p">Define your operational zones by pincodes and groups.</Text>
+                                </BlockStack>
+                                <Button icon={ChevronRightIcon}>Configure Regions</Button>
+                            </BlockStack>
+                        </Card>
+                    </Grid.Cell>
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3 }}>
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box background="bg-surface-success" padding="300" borderRadius="200" width="fit-content">
+                                    <Icon source={TargetIcon} tone="success" />
+                                </Box>
+                                <BlockStack gap="100">
+                                    <Text variant="headingMd" as="h3">Price Optimization</Text>
+                                    <Text variant="bodySm" tone="subdued" as="p">Set regional multipliers and advanced pricing logic.</Text>
+                                </BlockStack>
+                                <Button icon={ChevronRightIcon}>Set Price Rules</Button>
+                            </BlockStack>
+                        </Card>
+                    </Grid.Cell>
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3 }}>
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box background="bg-surface-brand" padding="300" borderRadius="200" width="fit-content">
+                                    <Icon source={MagicIcon} tone="info" />
+                                </Box>
+                                <BlockStack gap="100">
+                                    <Text variant="headingMd" as="h3">Visual Experience</Text>
+                                    <Text variant="bodySm" tone="subdued" as="p">Design localized countdowns, banners, and layouts.</Text>
+                                </BlockStack>
+                                <Button icon={ChevronRightIcon}>Enter Studio</Button>
+                            </BlockStack>
+                        </Card>
+                    </Grid.Cell>
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3 }}>
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box background="bg-surface-caution" padding="300" borderRadius="200" width="fit-content">
+                                    <Icon source={ChartLineIcon} tone="caution" />
+                                </Box>
+                                <BlockStack gap="100">
+                                    <Text variant="headingMd" as="h3">Demand Intelligence</Text>
+                                    <Text variant="bodySm" tone="subdued" as="p">Analyze waitlists and unserved market heatmap.</Text>
+                                </BlockStack>
+                                <Button icon={ChevronRightIcon}>View Insights</Button>
+                            </BlockStack>
+                        </Card>
+                    </Grid.Cell>
+                </Grid>
+            </BlockStack>
         </Box>
 
-        {/* Final Help Footer */}
+        {/* Deployment Strategies */}
+        <Box paddingBlockStart="200">
+            <BlockStack gap="400">
+                <Text variant="headingLg" as="h2">Deployment Strategies</Text>
+                <Layout>
+                    <Layout.Section variant="oneThird">
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box width="fit-content">
+                                    <Badge tone="magic">Level 1: Native Tags</Badge>
+                                </Box>
+                                <Text variant="headingMd" as="h3">Theme-First</Text>
+                                <Text tone="subdued" as="p">Add "Visibility Tags" directly inside existing theme sections. Zero code required.</Text>
+                                <Divider />
+                                <List>
+                                    <List.Item>Fastest implementation</List.Item>
+                                    <List.Item>Best for simple banners</List.Item>
+                                </List>
+                            </BlockStack>
+                        </Card>
+                    </Layout.Section>
+                    <Layout.Section variant="oneThird">
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box width="fit-content">
+                                    <Badge tone="info">Level 2: Guard Rails</Badge>
+                                </Box>
+                                <Text variant="headingMd" as="h3">The Power Guard</Text>
+                                <Text tone="subdued" as="p">Drag a "Visibility Guard" section above ANY stack of theme sections to lock them.</Text>
+                                <Divider />
+                                <List>
+                                    <List.Item>Protects multiple sections</List.Item>
+                                    <List.Item>Native Drag-and-Drop</List.Item>
+                                </List>
+                            </BlockStack>
+                        </Card>
+                    </Layout.Section>
+                    <Layout.Section variant="oneThird">
+                        <Card>
+                            <BlockStack gap="400">
+                                <Box width="fit-content">
+                                    <Badge tone="warning">Level 3: Expert CSS</Badge>
+                                </Box>
+                                <Text variant="headingMd" as="h3">Developer Class</Text>
+                                <Text tone="subdued" as="p">Use class <code>region-show-mumbai</code> in your theme settings to hide anything.</Text>
+                                <Divider />
+                                <List>
+                                    <List.Item>Zero app blocks</List.Item>
+                                    <List.Item>Unlimited flexibility</List.Item>
+                                </List>
+                            </BlockStack>
+                        </Card>
+                    </Layout.Section>
+                </Layout>
+            </BlockStack>
+        </Box>
+
+        {/* Intelligence Engine Visualization */}
+        <Box paddingBlockStart="200">
+            <Card>
+                <BlockStack gap="400">
+                    <InlineStack gap="200" blockAlign="center">
+                        <Box background="bg-surface-info" padding="100" borderRadius="100">
+                            <Icon source={InfoIcon} tone="info" />
+                        </Box>
+                        <Text variant="headingLg" as="h2">The Optimization Engine</Text>
+                    </InlineStack>
+                    
+                    <Box padding="500" background="bg-surface-secondary" borderRadius="300">
+                        <Grid>
+                            <Grid.Cell columnSpan={{ xs: 6, md: 4 }}>
+                                <BlockStack gap="200">
+                                    <InlineStack gap="200" blockAlign="center">
+                                        <Badge tone="info">01</Badge>
+                                        <Text variant="headingSm" as="h4">Signal Capture</Text>
+                                    </InlineStack>
+                                    <Text variant="bodyMd" tone="subdued" as="p">
+                                        Customer location is identified via ultra-fast Pincode lookup and cached securely at the edge.
+                                    </Text>
+                                </BlockStack>
+                            </Grid.Cell>
+                            
+                            <Grid.Cell columnSpan={{ xs: 6, md: 4 }}>
+                                <BlockStack gap="200">
+                                    <InlineStack gap="200" blockAlign="center">
+                                        <Badge tone="info">02</Badge>
+                                        <Text variant="headingSm" as="h4">Logic Mapping</Text>
+                                    </InlineStack>
+                                    <Text variant="bodyMd" tone="subdued" as="p">
+                                        Our intelligence engine maps the signal to your specific regional rules, multipliers, and visibility sets.
+                                    </Text>
+                                </BlockStack>
+                            </Grid.Cell>
+                            
+                            <Grid.Cell columnSpan={{ xs: 6, md: 4 }}>
+                                <BlockStack gap="200">
+                                    <InlineStack gap="200" blockAlign="center">
+                                        <Badge tone="info">03</Badge>
+                                        <Text variant="headingSm" as="h4">Dynamic Morph</Text>
+                                    </InlineStack>
+                                    <Text variant="bodyMd" tone="subdued" as="p">
+                                        Your storefront instantly transforms pricing and content without layout shifts or speed impact.
+                                    </Text>
+                                </BlockStack>
+                            </Grid.Cell>
+                        </Grid>
+                    </Box>
+
+                    <Banner tone="info">
+                        <Text as="p">Our engine operates at the <strong>edge</strong>, ensuring zero impact on your PageSpeed or SEO scores.</Text>
+                    </Banner>
+                </BlockStack>
+            </Card>
+        </Box>
+
+        {/* Footer Support */}
         <Box paddingBlockStart="400" paddingBlockEnd="600">
-          <Card>
-            <InlineStack align="space-between" blockAlign="center">
-              <BlockStack gap="100">
-                <Text variant="headingMd" as="h3">Need deeper assistance?</Text>
-                <Text tone="subdued" as="p">Our optimization guides and support are available via the dashboard link.</Text>
-              </BlockStack>
-              <Badge tone="success">V 1.2.0 Active</Badge>
+            <InlineStack align="center">
+                <BlockStack gap="200" align="center">
+                    <Text variant="bodySm" tone="subdued" as="p">Intelligence Hub & Optimization Guide</Text>
+                    <InlineStack gap="400">
+                        <Button variant="plain">Technical Docs</Button>
+                        <Button variant="plain">Video Tutorials</Button>
+                        <Button variant="plain">Speak with Growth Expert</Button>
+                    </InlineStack>
+                </BlockStack>
             </InlineStack>
-          </Card>
         </Box>
 
       </BlockStack>

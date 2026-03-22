@@ -29,13 +29,11 @@ export default function App() {
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <NavMenu>
         <Link key="dashboard" to="/app" rel="home">Dashboard</Link>
-        <Link key="guide" to="/app/guide">App Guide</Link>
-        <Link key="analytics" to="/app/analytics">Analytics & Optimization</Link>
-        <Link key="pincodes" to="/app/pincodes">Coverage Hub</Link>
-        <Link key="logic" to="/app/logic">Regional Logic Hub</Link>
-        <Link key="rules" to="/app/rules">Tag Automation</Link>
-        <Link key="modal" to="/app/modal-customize">Experience Studio</Link>
-        <Link key="config" to="/app/config">Regional Components</Link>
+        <Link key="pincodes" to="/app/pincodes">Markets & Coverage</Link>
+        <Link key="logic" to="/app/logic">Regional Rules</Link>
+        <Link key="visual" to="/app/config">Visual Studio</Link>
+        <Link key="intelligence" to="/app/analytics">Intelligence & Growth</Link>
+        <Link key="guide" to="/app/guide">Setup Guide</Link>
       </NavMenu>
       <Frame>
         <Box paddingBlockStart="400" paddingBlockEnd="400">
