@@ -65,7 +65,8 @@ export async function loader({ request }) {
         lockoutMessage: appConfig?.lockoutMessage || "Delivery not available in this area yet."
     };
 
-  } catch (error) {
+    return json(safeConfig);
+} catch (error) {
     console.error("Critical Error in Modal Config API:", error);
     return json({ error: "Internal Server Error" }, { status: 500 });
   }

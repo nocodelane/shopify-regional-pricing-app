@@ -92,26 +92,42 @@
                     const modalDialog = modal.querySelector('.pincode-modal-content');
                     if (modalDialog) {
                         modalDialog.style.backgroundColor = config.backgroundColor || "#ffffff";
-                        modalDialog.style.color = config.textColor || "#1a1a1a";
-                        modalDialog.style.borderColor = config.primaryColor || "#4338ca";
+                        modalDialog.style.color = config.textColor || "#333333";
+                        modalDialog.style.borderColor = config.primaryColor || "#000000";
+                        modalDialog.style.fontSize = config.fontSize || "16px";
+                        modalDialog.style.fontFamily = config.fontFamily || "Inter, sans-serif";
                     }
-                    if (submitBtn) submitBtn.style.backgroundColor = config.primaryColor || "#4338ca";
+                    if (submitBtn) {
+                        submitBtn.style.backgroundColor = config.primaryColor || "#000000";
+                        submitBtn.style.color = config.textColor || "#ffffff"; /* Avoid dark on dark */
+                    }
                     if (config.overlayColor) modal.style.backgroundColor = config.overlayColor;
                     if (config.overlayBlur) modal.style.backdropFilter = `blur(${config.overlayBlur})`;
                 }
 
                 const applyPremiumStyles = (btn) => {
+                    if (!btn) return;
                     const layout = config.triggerLayoutStyle || 'boxed';
-                    const bg = config.triggerTransparent || layout === 'minimal' ? 'transparent' : (config.triggerBackgroundColor || '#000000');
+                    const bg = (config.triggerTransparent || layout === 'minimal') ? 'transparent' : (config.triggerBackgroundColor || '#000000');
                     const text = config.triggerTextColor || '#ffffff';
+                    
                     btn.style.setProperty("background-color", bg, "important");
                     btn.style.setProperty("color", text, "important");
                     btn.style.setProperty("padding", config.triggerPadding || '10px 18px', "important");
                     btn.style.setProperty("border-radius", config.triggerBorderRadius || '24px', "important");
                     btn.style.setProperty("font-size", config.triggerFontSize || '14px', "important");
                     btn.style.setProperty("font-weight", config.triggerFontWeight || '600', "important");
-                    if (config.useGlassmorphism) { btn.style.backdropFilter = 'blur(10px) saturate(180%)'; }
-                    btn.style.transition = 'all 0.3s ease'; btn.style.cursor = 'pointer'; btn.style.display = 'inline-flex'; btn.style.alignItems = 'center'; btn.style.gap = '10px';
+                    btn.style.setProperty("border", `${config.triggerBorderWidth || '1px'} solid ${config.triggerBorderColor || (bg === 'transparent' ? text : bg)}`, "important");
+                    
+                    if (config.useGlassmorphism) { 
+                        btn.style.backdropFilter = 'blur(10px) saturate(180%)'; 
+                        btn.style.webkitBackdropFilter = 'blur(10px) saturate(180%)';
+                    }
+                    btn.style.transition = 'all 0.3s ease'; 
+                    btn.style.cursor = 'pointer'; 
+                    btn.style.display = 'inline-flex'; 
+                    btn.style.alignItems = 'center'; 
+                    btn.style.gap = '10px';
                 };
 
                 const floatingTrigger = document.getElementById("pincode-change-trigger");
@@ -121,6 +137,7 @@
                         floatingTrigger.style.display = "block";
                         const btn = floatingTrigger.querySelector('button');
                         floatingTrigger.style.position = "fixed"; floatingTrigger.style.zIndex = "2147483647";
+                        floatingTrigger.style.top = "auto"; floatingTrigger.style.bottom = "auto"; floatingTrigger.style.left = "auto"; floatingTrigger.style.right = "auto";
                         const margin = "25px";
                         if (config.position === "bottom-left") { floatingTrigger.style.bottom = margin; floatingTrigger.style.left = margin; }
                         else if (config.position === "top-right") { floatingTrigger.style.top = margin; floatingTrigger.style.right = margin; }
@@ -131,7 +148,9 @@
                             const currentPincode = getStored("lastCheckedPincode") || "Pincode";
                             const currentRegion = getStored("regionName");
                             const displayText = (currentRegion && currentRegion !== "undefined") ? currentRegion : currentPincode;
-                            btn.innerHTML = `<div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.1;"><span style="font-size:9px; opacity:0.7;">Delivering to:</span><strong>${displayText}</strong></div>`;
+                            btn.innerHTML = `<div style="display:flex; flex-direction:column; align-items:flex-start; line-height:1.1;"><span style="font-size:9px; opacity:0.7;">${config.pincodePrefixText || "Delivering to:"}</span><strong>${displayText}</strong></div>`;
+                        } else if (config.floatingButtonText) {
+                            btn.innerText = config.floatingButtonText;
                         }
                         applyPremiumStyles(btn);
                     }
