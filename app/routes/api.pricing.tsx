@@ -11,7 +11,12 @@ const pricingCache = new LRUCache<string, any>({
   ttl: 1000 * 60 * 5, // 5 mins
 });
 
+export async function loader() {
+  return json({ status: "ok", message: "Pricing API is active" });
+}
+
 export async function action({ request }: ActionFunctionArgs) {
+  console.log("Incoming Pricing Request to /api/pricing");
   let session;
   try {
     const auth = await authenticate.public.appProxy(request);

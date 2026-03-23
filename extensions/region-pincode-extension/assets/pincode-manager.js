@@ -264,7 +264,22 @@
                     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     body: JSON.stringify({ shop, region: regionId, products: productIds })
                 });
-                if (!resp.ok) { console.error(`[Pincode] Pricing API error: ${resp.status}`); revealPrices(); return; }
+                if (!resp.ok) {
+                    console.error(`[Pincode] Pricing API error: ${resp.status}`);
+                    if (resp.status === 404) {
+                        console.warn("[Pincode] Stale region detected. Clearing stored region data.");
+                        localStorage.removeItem("regionId");
+                        localStorage.removeItem("regionName");
+                        localStorage.removeItem("regionMultiplier");
+                        localStorage.removeItem("lastCheckedPincode");
+                        setCookie("regionId", null, 0);
+                        setCookie("regionName", null, 0);
+                        setCookie("regionMultiplier", null, 0);
+                        setCookie("lastCheckedPincode", null, 0);
+                    }
+                    revealPrices();
+                    return;
+                }
                 const { productPricing, allowAbsurdPricing } = await resp.json();
                 console.log(`[Pincode] Pricing received for ${Object.keys(productPricing).length} products. Absurd pricing allowed: ${allowAbsurdPricing}`);
 

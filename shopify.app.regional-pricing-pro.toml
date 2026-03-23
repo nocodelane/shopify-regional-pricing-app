@@ -2,15 +2,14 @@
 
 client_id = "e5d176a5072c8441e9bb21f779c68238"
 name = "Regional Pricing Pro"
-application_url = "https://tiny-duo-expertise-factory.trycloudflare.com"
+application_url = "https://mercury-respondents-thereby-caring.trycloudflare.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
-api_version = "2026-04"
+api_version = "2024-10"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -20,10 +19,10 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://tiny-duo-expertise-factory.trycloudflare.com/api/auth"
+  "https://mercury-respondents-thereby-caring.trycloudflare.com/api/auth"
 ]
 
 [app_proxy]
-url = "https://tiny-duo-expertise-factory.trycloudflare.com"
+url = "https://mercury-respondents-thereby-caring.trycloudflare.com"
 subpath = "regional-sync-api"
 prefix = "apps"
