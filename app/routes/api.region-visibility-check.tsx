@@ -10,6 +10,7 @@ const visibilityCache = new LRUCache<string, any>({
 });
 
 import { authenticate } from "../shopify.server";
+import { checkRateLimit } from "../utils/rate-limit.server.js";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let session;
@@ -23,6 +24,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const shop = session?.shop;
   if (!shop) return json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate Limiting: 120 requests per minute per shop
+  if (!checkRateLimit(shop, 120, 60000)) {
+    return json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
 
   const url = new URL(request.url);
   const regionId = url.searchParams.get("regionId");
@@ -38,22 +44,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     const [deniedProductRules, deniedCollectionRules] = await Promise.all([
-      prisma.$queryRawUnsafe(`SELECT productHandle FROM ProductRegionRule WHERE shop = ? AND regionId = ? AND allowed = 0`, shop, regionId),
-      prisma.$queryRawUnsafe(`SELECT collectionId, collectionHandle FROM CollectionRegionRule WHERE shop = ? AND regionId = ? AND allowed = 0`, shop, regionId)
+      prisma.productRegionRule.findMany({
+        where: { shop, regionId, allowed: false },
+        select: { productHandle: true }
+      }),
+      prisma.collectionRegionRule.findMany({
+        where: { shop, regionId, allowed: false },
+        select: { collectionId: true, collectionHandle: true }
+      })
     ]);
 
-    const productHandles = new Set((deniedProductRules as any[]).map(p => p.productHandle?.trim()?.toLowerCase()).filter(Boolean));
-    const collectionHandles = (deniedCollectionRules as any[]).map(c => c.collectionHandle?.trim()?.toLowerCase()).filter(Boolean);
-    const deniedCollectionIds = (deniedCollectionRules as any[]).map(c => c.collectionId).filter(Boolean);
+    const productHandles = new Set(deniedProductRules.map(p => p.productHandle?.trim()?.toLowerCase()).filter(Boolean) as string[]);
+    const collectionHandles = deniedCollectionRules.map(c => c.collectionHandle?.trim()?.toLowerCase()).filter(Boolean) as string[];
+    const deniedCollectionIds = deniedCollectionRules.map(c => c.collectionId).filter(Boolean);
 
     // Fetch product handles inherited from denied collections
     if (deniedCollectionIds.length > 0) {
-      const inheritedProductRules = await prisma.$queryRawUnsafe(
-        `SELECT productHandle FROM CollectionProductHandle WHERE shop = ? AND collectionId IN (${deniedCollectionIds.map(() => '?').join(',')})`,
-        shop,
-        ...deniedCollectionIds
-      );
-      (inheritedProductRules as any[]).forEach(p => {
+      const inheritedProductRules = await prisma.collectionProductHandle.findMany({
+        where: {
+          shop,
+          collectionId: { in: deniedCollectionIds }
+        },
+        select: { productHandle: true }
+      });
+      inheritedProductRules.forEach(p => {
           if (p.productHandle) productHandles.add(p.productHandle.trim().toLowerCase());
       });
     }

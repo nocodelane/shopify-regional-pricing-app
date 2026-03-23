@@ -3,6 +3,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import prisma from "../db.server";
 
 import { authenticate } from "../shopify.server";
+import { checkRateLimit } from "../utils/rate-limit.server.js";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   let session;
@@ -16,6 +17,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const shop = session?.shop;
   if (!shop) return json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate Limiting: 120 requests per minute per shop
+  if (!checkRateLimit(shop, 120, 60000)) {
+    return json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
 
   const url = new URL(request.url);
   const pincode = url.searchParams.get("pincode");

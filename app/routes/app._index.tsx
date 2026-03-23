@@ -52,19 +52,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const coverageRatio = totalSearches > 0 ? (matchedSearches / totalSearches) * 100 : 0;
 
-  // RAW SQL Workaround for AppConfig
-  const configs = await prisma.$queryRaw`SELECT * FROM AppConfig WHERE shop = ${shop} LIMIT 1` as any[];
-  let config = configs[0];
+  // Safe Prisma query for AppConfig
+  let config = await prisma.appConfig.findUnique({
+    where: { shop }
+  });
 
   if (!config) {
-    const id = crypto.randomUUID();
-    const now = new Date().toISOString();
-    await prisma.$executeRaw`INSERT INTO AppConfig (id, shop, regionalPricingActive, visibilityRulesActive, abTestingActive, waitlistActive, aiFeaturesActive, flashSalesActive, pincodeGuardActive, updatedAt) VALUES (${id}, ${shop}, 1, 1, 0, 1, 0, 1, 0, ${now})`;
-    const newConfigs = await prisma.$queryRaw`SELECT * FROM AppConfig WHERE shop = ${shop} LIMIT 1` as any[];
-    config = newConfigs[0];
+    config = await prisma.appConfig.create({
+      data: {
+        shop,
+        regionalPricingActive: true,
+        visibilityRulesActive: true,
+        abTestingActive: false,
+        waitlistActive: true,
+        aiFeaturesActive: false,
+        flashSalesActive: true,
+        pincodeGuardActive: false,
+      }
+    });
   }
 
-  // Normalize SQLite numeric booleans to JS booleans
+  // Normalize SQLite numeric booleans to JS booleans (Prisma usually handles this if schema is correct, but safe to keep)
   const normalizedConfig = {
       ...config,
       regionalPricingActive: !!config.regionalPricingActive,
@@ -105,9 +113,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "toggle-feature") {
     const feature = formData.get("feature") as string;
-    const value = formData.get("value") === "true" ? 1 : 0;
+    const value = formData.get("value") === "true";
     
-    // Whitelist allowed columns to prevent SQL Injection
+    // Whitelist allowed columns
     const allowedFeatures = [
         "regionalPricingActive", 
         "visibilityRulesActive", 
@@ -122,9 +130,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         return json({ error: "Invalid feature" }, { status: 400 });
     }
 
-    // RAW SQL Update - Still using executeRawUnsafe because column names cannot be paramterized in standard SQL
-    // but now safe due to whitelisting.
-    await prisma.$executeRawUnsafe(`UPDATE AppConfig SET ${feature} = ${value} WHERE shop = ?`, session.shop);
+    // Safe Prisma Update with dynamic key
+    await prisma.appConfig.update({
+        where: { shop: session.shop },
+        data: { [feature]: value }
+    });
     return json({ success: true });
   }
 
@@ -162,7 +172,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     // Also update aiFeaturesActive if enabling
     if (enabled) {
-        await prisma.$executeRawUnsafe(`UPDATE AppConfig SET aiFeaturesActive = 1 WHERE shop = ?`, session.shop);
+        await prisma.appConfig.update({
+            where: { shop: session.shop },
+            data: { aiFeaturesActive: true }
+        });
     }
 
     return json({ success: true });

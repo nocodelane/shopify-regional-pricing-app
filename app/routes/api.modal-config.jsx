@@ -1,6 +1,7 @@
 import { json } from "@remix-run/node";
 import prisma from "../db.server";
 import { authenticate } from "../shopify.server";
+import { checkRateLimit } from "../utils/rate-limit.server.js";
 
 export async function loader({ request }) {
   let session;
@@ -16,6 +17,11 @@ export async function loader({ request }) {
 
   if (!shop) {
     return json({ error: "Missing shop context" }, { status: 400 });
+  }
+
+  // Rate Limiting: 60 requests per minute per shop
+  if (!checkRateLimit(shop, 60, 60000)) {
+    return json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
 
   try {

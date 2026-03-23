@@ -1,4 +1,4 @@
-(function() {
+(function () {
     // Helper: Dual Storage Read
     function getCookie(name) { const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)'); return v ? v[2] : null; }
     function getStored(key) { return getCookie(key) || localStorage.getItem(key); }
@@ -57,7 +57,7 @@
         const shop = getShop();
         console.log("[Pincode] Loader starting. Shop:", shop || "Unknown");
         if (!shop) {
-             console.warn("[Pincode] No shop domain found. Proxy requests might fail.");
+            console.warn("[Pincode] No shop domain found. Proxy requests might fail.");
         }
 
         // 0. Fetch and Apply Modal Customization
@@ -71,7 +71,7 @@
                 }
                 const config = await resp.json();
                 console.log("[Pincode] Config loaded:", config);
-                
+
                 if (config.usePulse && !document.getElementById('pincode-animations')) {
                     const style = document.createElement('style'); style.id = 'pincode-animations';
                     style.innerHTML = `@keyframes pincode-pulse { 0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }`;
@@ -110,7 +110,7 @@
                     const layout = config.triggerLayoutStyle || 'boxed';
                     const bg = (config.triggerTransparent || layout === 'minimal') ? 'transparent' : (config.triggerBackgroundColor || '#000000');
                     const text = config.triggerTextColor || '#ffffff';
-                    
+
                     btn.style.setProperty("background-color", bg, "important");
                     btn.style.setProperty("color", text, "important");
                     btn.style.setProperty("padding", config.triggerPadding || '10px 18px', "important");
@@ -118,15 +118,15 @@
                     btn.style.setProperty("font-size", config.triggerFontSize || '14px', "important");
                     btn.style.setProperty("font-weight", config.triggerFontWeight || '600', "important");
                     btn.style.setProperty("border", `${config.triggerBorderWidth || '1px'} solid ${config.triggerBorderColor || (bg === 'transparent' ? text : bg)}`, "important");
-                    
-                    if (config.useGlassmorphism) { 
-                        btn.style.backdropFilter = 'blur(10px) saturate(180%)'; 
+
+                    if (config.useGlassmorphism) {
+                        btn.style.backdropFilter = 'blur(10px) saturate(180%)';
                         btn.style.webkitBackdropFilter = 'blur(10px) saturate(180%)';
                     }
-                    btn.style.transition = 'all 0.3s ease'; 
-                    btn.style.cursor = 'pointer'; 
-                    btn.style.display = 'inline-flex'; 
-                    btn.style.alignItems = 'center'; 
+                    btn.style.transition = 'all 0.3s ease';
+                    btn.style.cursor = 'pointer';
+                    btn.style.display = 'inline-flex';
+                    btn.style.alignItems = 'center';
                     btn.style.gap = '10px';
                 };
 
@@ -158,8 +158,8 @@
                     }
                 }
                 return config;
-            } catch (e) { 
-                console.error("Modal config error:", e); 
+            } catch (e) {
+                console.error("Modal config error:", e);
                 return null;
             }
         }
@@ -167,17 +167,17 @@
         const configPromise = applyModalCustomization();
 
         const storedRegion = getStored("regionId");
-        
+
         async function checkModalVisibility() {
             const config = await configPromise;
             const isHome = isHomepage();
             console.log(`[Pincode] Visibility check: isHome=${isHome}, storedRegion=${storedRegion}, showOnAnyPage=${config?.showOnAnyPage}`);
 
-            if (!storedRegion || storedRegion === "null" || storedRegion === "undefined") { 
+            if (!storedRegion || storedRegion === "null" || storedRegion === "undefined") {
                 const isExcluded = (config && config.excludedPaths) ? config.excludedPaths.split(',').map(p => p.trim()).some(p => window.location.pathname.startsWith(p)) : false;
-                
+
                 if (modal) {
-                    const shouldShow = (!config) || config.showOnAnyPage || isHome; 
+                    const shouldShow = (!config) || config.showOnAnyPage || isHome;
                     console.log(`[Pincode] shouldShow decision: ${shouldShow} (isExcluded: ${isExcluded})`);
 
                     if (shouldShow) {
@@ -191,7 +191,7 @@
                         } else {
                             const closeBtn = document.getElementById("pincode-modal-close");
                             if (closeBtn) closeBtn.style.display = "flex";
-                            
+
                             if (!storedRegion || storedRegion === "null" || storedRegion === "undefined") {
                                 console.log("[Pincode] Showing modal (Initial/No Region)");
                                 modal.style.display = "flex";
@@ -208,9 +208,9 @@
 
         checkModalVisibility();
 
-        if (storedRegion && storedRegion !== "null" && storedRegion !== "undefined") { 
-            applyRegionalPricing(); 
-            applyVisibilityRules(storedRegion); 
+        if (storedRegion && storedRegion !== "null" && storedRegion !== "undefined") {
+            applyRegionalPricing();
+            applyVisibilityRules(storedRegion);
         }
 
         async function applyVisibilityRules(regionId) {
@@ -221,7 +221,7 @@
                     const visibility = await resp.json();
                     updateHidingStyles(visibility.deniedProductHandles, visibility.deniedCollectionHandles);
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         async function applyRegionalPricing() {
@@ -239,19 +239,19 @@
                 document.querySelectorAll('form[action*="/cart/add"]').forEach(form => {
                     const idInput = form.querySelector('input[name="id"], input[name="product-id"]');
                     if (idInput && /^\d+$/.test(idInput.value)) {
-                       // Note: variant IDs are often here, try to find product ID from JSON if nearby
+                        // Note: variant IDs are often here, try to find product ID from JSON if nearby
                     }
                 });
                 // Strategy 3: Scripts (Product JSON)
                 document.querySelectorAll('script[type="application/json"][data-product-json], script#ProductJson').forEach(s => {
-                    try { const d = JSON.parse(s.innerHTML); if (d.id) ids.add(`gid://shopify/Product/${d.id}`); } catch(e){}
+                    try { const d = JSON.parse(s.innerHTML); if (d.id) ids.add(`gid://shopify/Product/${d.id}`); } catch (e) { }
                 });
                 return Array.from(ids);
             };
             const productIds = getProductsOnPage();
 
             if (productIds.length === 0) {
-                const mStr = getStored("regionMultiplier"); 
+                const mStr = getStored("regionMultiplier");
                 if (mStr && parseFloat(mStr) !== 1.0) applyFallbackGlobal(parseFloat(mStr));
                 else revealPrices();
                 return;
@@ -273,7 +273,7 @@
                     document.querySelectorAll('[data-product-id], [data-id], .product-card, .grid__item').forEach(container => {
                         const idAttr = container.getAttribute('data-product-id') || container.getAttribute('data-id');
                         let gid = idAttr ? (idAttr.includes('Product/') ? idAttr : `gid://shopify/Product/${idAttr}`) : null;
-                        
+
                         if (!gid) {
                             // Deep search for ID if container doesn't have it
                             const childWithId = container.querySelector('[data-product-id], [data-id]');
@@ -290,20 +290,20 @@
 
                             priceElements.forEach(el => {
                                 if (el.getAttribute('data-regional-applied') === 'true') return;
-                                
+
                                 // Strict Regex: Only match sane numbers that look like prices
                                 const priceRegex = /\b\d{1,7}(?:[\.,]\d{2,3})?\b/;
                                 const match = el.innerText.trim().match(priceRegex);
-                                
+
                                 if (match) {
                                     let orig = parseFloat(match[0].replace(/,/g, ''));
                                     if (!isNaN(orig) && orig > 0 && orig < 1000000) {
-                                         let np = orig;
-                                         if (rule.ruleType === 'percentage') np = orig * rule.multiplier;
-                                         else if (rule.ruleType === 'fixed_adjustment') np = orig + rule.multiplier;
-                                         else if (rule.ruleType === 'fixed_price') np = rule.multiplier;
-                                         
-                                         lastEffectiveMult = np / orig;
+                                        let np = orig;
+                                        if (rule.ruleType === 'percentage') np = orig * rule.multiplier;
+                                        else if (rule.ruleType === 'fixed_adjustment') np = orig + rule.multiplier;
+                                        else if (rule.ruleType === 'fixed_price') np = rule.multiplier;
+
+                                        lastEffectiveMult = np / orig;
                                         const formattedPrice = np.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                         el.innerHTML = el.innerText.replace(match[0], formattedPrice);
                                         el.setAttribute('data-regional-applied', 'true');
@@ -330,7 +330,7 @@
             const update = () => {
                 document.querySelectorAll('.price-item, .price, .money, .amount, [data-price]').forEach(el => {
                     if (el.getAttribute('data-regional-applied') === 'true') return;
-                    const match = el.innerText.trim().match(/\d[\d,.]*/); 
+                    const match = el.innerText.trim().match(/\d[\d,.]*/);
                     if (match) {
                         const orig = parseFloat(match[0].replace(/,/g, ''));
                         if (!isNaN(orig)) {
@@ -347,16 +347,16 @@
 
         if (submitBtn) {
             submitBtn.addEventListener("click", async () => {
-                const pin = input.value.trim(); 
+                const pin = input.value.trim();
                 if (!pin) return;
-                
+
                 // 6-digit validation
                 if (!/^\d{6}$/.test(pin)) {
                     errorMsg.innerText = "Please enter a valid 6-digit pincode.";
                     errorMsg.style.display = "block";
                     return;
                 }
-                
+
                 const originalText = submitBtn.innerText;
                 submitBtn.disabled = true; submitBtn.innerText = "Verifying...";
                 try {
@@ -366,8 +366,8 @@
                         setCookie("regionId", data.regionId, 30); setCookie("regionName", data.region, 30); setCookie("regionMultiplier", data.priceMultiplier.toString(), 30); setCookie("lastCheckedPincode", pin, 30);
                         localStorage.setItem("regionId", data.regionId); localStorage.setItem("regionName", data.region); localStorage.setItem("regionMultiplier", data.priceMultiplier.toString()); localStorage.setItem("lastCheckedPincode", pin);
                         window.location.reload();
-                    } else { 
-                        errorMsg.innerText = data.message || "Invalid pincode."; errorMsg.style.display = "block"; 
+                    } else {
+                        errorMsg.innerText = data.message || "Invalid pincode."; errorMsg.style.display = "block";
                         const wl = document.getElementById("pincode-waitlist-container"); if (wl) wl.style.display = "block";
                         submitBtn.disabled = false; submitBtn.innerText = originalText;
                     }
@@ -387,31 +387,31 @@
                         const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
                         const data = await resp.json();
                         if (data.address?.postcode && input) { input.value = data.address.postcode.replace(/\s/g, ''); submitBtn.click(); }
-                    } catch (e) {} finally { btn.disabled = false; }
+                    } catch (e) { } finally { btn.disabled = false; }
                 }, () => { btn.disabled = false; });
             });
         }
 
         document.addEventListener("click", async (e) => {
-            if (e.target.closest('[data-open-pincode-modal]')) { 
-                e.preventDefault(); 
+            if (e.target.closest('[data-open-pincode-modal]')) {
+                e.preventDefault();
                 if (modal) {
-                    modal.style.display = "flex"; 
+                    modal.style.display = "flex";
                     const config = await configPromise;
                     if (config && config.disableScroll) {
                         toggleScroll(true);
                     }
                 }
             }
-            if (e.target.id === "pincode-modal-close") { 
+            if (e.target.id === "pincode-modal-close") {
                 if (modal) {
-                    modal.style.display = "none"; 
+                    modal.style.display = "none";
                     toggleScroll(false);
                 }
             }
-            if (e.target.id === "pincode-modal") { 
+            if (e.target.id === "pincode-modal") {
                 if (modal.getAttribute('data-locked') !== 'true') {
-                    modal.style.display = "none"; 
+                    modal.style.display = "none";
                     toggleScroll(false);
                 }
             }
@@ -449,11 +449,11 @@
                 const resp = await fetch(`/apps/regional-sync-api/api/region-config?region=${regionId}&shop=${shop}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 if (!resp.ok) return;
                 const data = await resp.json();
-                
+
                 widgets.forEach(w => {
                     const id = w.getAttribute('data-component-id');
                     if (!id || id === "") return; // Skip universal widgets
-                    
+
                     const section = data.homepage?.sections?.find(s => s.id === id);
                     if (section && WidgetRenderer[section.type]) {
                         w.querySelector('.regional-widget-content').innerHTML = WidgetRenderer[section.type](section.settings);
@@ -465,7 +465,7 @@
         }
 
         initRegionalWidgets();
-        
+
         // Update any fallback pincode displays
         const currentPincode = getStored("lastCheckedPincode") || "--";
         document.querySelectorAll('.pincode-display').forEach(el => {

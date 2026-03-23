@@ -29,6 +29,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ error: "Shop unauthorized" }, { status: 401 });
   }
 
+  // Rate Limiting: 120 requests per minute per shop
+  if (!checkRateLimit(shop, 120, 60000)) {
+    return json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
+
   if (!regionId) { // Only check for regionId here, as shop is already validated
     return json({ error: "Missing region parameter" }, { status: 400 });
   }

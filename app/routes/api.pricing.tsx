@@ -4,6 +4,7 @@ import { LRUCache } from "lru-cache";
 import prisma from "../db.server";
 
 import { authenticate } from "../shopify.server";
+import { checkRateLimit } from "../utils/rate-limit.server.js";
 
 const pricingCache = new LRUCache<string, any>({
   max: 1000,
@@ -21,6 +22,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const shop = session?.shop;
+  if (!shop) return json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate Limiting: 120 requests per minute per shop
+  if (!checkRateLimit(shop, 120, 60000)) {
+    return json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
 
   try {
     const { region: regionId, products: productIds } = await request.json();
@@ -78,15 +85,20 @@ export async function action({ request }: ActionFunctionArgs) {
     let activeTest = null;
 
     if (isABActive) {
-        const activeTests = await prisma.$queryRaw`SELECT * FROM ABTest WHERE shop = ${shop} AND regionId = ${regionId} AND status = 'active' LIMIT 1` as any[];
-        activeTest = activeTests[0];
+        activeTest = await prisma.aBTest.findFirst({
+            where: { shop, regionId, status: 'active' }
+        });
+        
         if (activeTest) {
-            // Log views for variant A/B
-            if (variant === "B") {
-                prisma.$executeRaw`UPDATE ABTest SET resultsVariant = resultsVariant + 1 WHERE id = ${activeTest.id}`.catch(() => {});
-            } else {
-                prisma.$executeRaw`UPDATE ABTest SET resultsControl = resultsControl + 1 WHERE id = ${activeTest.id}`.catch(() => {});
-            }
+            // Log views for variant A/B using atomic increment
+            const updateData = variant === "B" 
+                ? { resultsVariant: { increment: 1 } }
+                : { resultsControl: { increment: 1 } };
+            
+            prisma.aBTest.update({
+                where: { id: activeTest.id },
+                data: updateData
+            }).catch(() => {});
         }
     }
 
