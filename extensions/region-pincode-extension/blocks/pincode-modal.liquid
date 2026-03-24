@@ -232,6 +232,12 @@
   var rId = gC("regionId") || localStorage.getItem("regionId");
   var rName = gC("regionName") || localStorage.getItem("regionName");
 
+  // --- IMMEDIATE PRICE FLICKER GUARD ---
+  if (rId && rId !== "null") {
+    var pCss = '.price, .money, .amount, .price-item, .product-item__price, [data-price], .product-single__price, .product__price { visibility: hidden !important; opacity: 0 !important; }';
+    document.write('<style id="pincode-flicker-guard">' + pCss + '</style>');
+  }
+
   // Universal Regional Class Hider (The 'Easier Way')
   // Allows merchants to add 'region-show-india' or 'region-hide-usa' to any section's CSS class
   var universalCss = '';
