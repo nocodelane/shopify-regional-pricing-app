@@ -1,4 +1,5 @@
 (function () {
+    // Force sync trigger - v1.1
     // --- Phase 0: Aggressive Flicker Guard ---
     (function injectGuard() {
         const getCookie = (name) => { const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)'); return v ? v[2] : null; };
@@ -62,8 +63,7 @@
 
     const revealPrices = () => {
         document.body.classList.add('pincode-prices-revealed');
-        const guard = document.getElementById('pincode-flicker-guard');
-        if (guard) guard.remove();
+        document.querySelectorAll('#pincode-flicker-guard').forEach(el => el.remove());
     };
 
     document.addEventListener("DOMContentLoaded", () => {
