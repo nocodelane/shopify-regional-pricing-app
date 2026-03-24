@@ -3,11 +3,19 @@ query CartTransformRunInput {
     attribute(key: "_regionMultiplier") {
       value
     }
+    rules: attribute(key: "_regionalRules") {
+      value
+    }
     lines {
       id
       quantity
-      attribute(key: "_regionMultiplier") {
-        value
+      merchandise {
+        ... on ProductVariant {
+          id
+          product {
+            id
+          }
+        }
       }
       cost {
         amountPerQuantity {

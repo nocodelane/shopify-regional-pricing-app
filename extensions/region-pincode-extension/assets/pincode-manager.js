@@ -171,16 +171,42 @@
             return Array.from(ids);
         };
 
-        const syncCart = async () => {
-            const mult = getStored("regionMultiplier");
-            if (!mult) return;
+        const syncCart = async (pricing) => {
+            const globalMult = getStored("regionMultiplier");
+            if (!globalMult) return;
             try {
                 const cart = await fetch('/cart.js').then(r => r.json());
-                if (cart.attributes?._regionMultiplier !== mult.toString()) {
+                const rulesMap = {};
+                let needsUpdate = false;
+
+                // Build a map of product GIDs to their effective multipliers for the current region
+                if (cart.items && cart.items.length > 0) {
+                    cart.items.forEach(item => {
+                        const gid = `gid://shopify/Product/${item.product_id}`;
+                        if (pricing && pricing[gid]) {
+                           const rule = pricing[gid];
+                           let m = 1.0;
+                           const orig = item.original_price / 100;
+                           if (rule.ruleType === 'percentage') m = parseFloat(rule.multiplier);
+                           else if (rule.ruleType === 'fixed_adjustment') m = (orig + parseFloat(rule.multiplier)) / orig;
+                           else if (rule.ruleType === 'fixed_price') m = parseFloat(rule.multiplier) / orig;
+                           else m = parseFloat(globalMult) || 1.0;
+                           rulesMap[gid] = parseFloat(m.toFixed(4));
+                        }
+                    });
+                }
+
+                const rulesJson = JSON.stringify(rulesMap);
+                if (cart.attributes?._regionMultiplier !== globalMult.toString() || cart.attributes?._regionalRules !== rulesJson) {
                     await fetch('/cart/update.js', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ attributes: { '_regionMultiplier': mult } })
+                        body: JSON.stringify({ 
+                            attributes: { 
+                                '_regionMultiplier': globalMult,
+                                '_regionalRules': rulesJson
+                            } 
+                        })
                     });
                 }
             } catch (e) {}
@@ -268,27 +294,12 @@
                             el.innerText = newText;
                         }
                     });
-
-                    document.querySelectorAll('form[action*="/cart/add"]').forEach(form => {
-                        let gid = form.querySelector('input[name="product-id"]')?.value;
-                        if (!gid && window.ShopifyAnalytics?.meta?.product?.id) gid = window.ShopifyAnalytics.meta.product.id;
-                        if (gid && !gid.toString().includes('Product/')) gid = `gid://shopify/Product/${gid}`;
-                        
-                        const finalMult = effectiveMultipliers[gid] || getStored("regionMultiplier") || 1.0;
-                        let prop = form.querySelector('input[name="properties[_regionMultiplier]"]');
-                        if (!prop) {
-                            prop = document.createElement('input');
-                            prop.type = 'hidden'; prop.name = 'properties[_regionMultiplier]';
-                            form.appendChild(prop);
-                        }
-                        prop.value = parseFloat(finalMult).toFixed(4);
-                    });
                     revealPrices();
                 };
 
                 update();
                 new MutationObserver(update).observe(document.body, { childList: true, subtree: true, characterData: true });
-                syncCart();
+                syncCart(productPricing);
             } catch (e) { revealPrices(); }
         }
 
