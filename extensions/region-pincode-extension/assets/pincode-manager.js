@@ -219,6 +219,8 @@
                 if (!productPricing) { revealPrices(); return; }
 
                 const effectiveMultipliers = {};
+                const originalPrices = new WeakMap(); // Private storage
+
                 const update = () => {
                     document.querySelectorAll('.price, .money, .amount, .price-item, .product-item__price').forEach(el => {
                         const container = el.closest('[data-product-id], [data-id], form[action*="/cart/add"], .product-single, .product-item, .product-form');
@@ -238,10 +240,10 @@
                         const rule = productPricing[gid];
                         if (!rule.allowed) { el.style.setProperty('display', 'none', 'important'); return; }
 
-                        let baseText = el.getAttribute('data-original-price');
+                        let baseText = originalPrices.get(el);
                         if (!baseText) {
                             baseText = el.innerText.trim();
-                            el.setAttribute('data-original-price', baseText);
+                            originalPrices.set(el, baseText);
                         }
 
                         const priceRegex = /\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?/;
@@ -264,7 +266,6 @@
                         const newText = baseText.replace(match[0], formatted);
                         if (el.innerText !== newText) {
                             el.innerText = newText;
-                            el.setAttribute('data-regional-applied', 'true');
                         }
                     });
 
