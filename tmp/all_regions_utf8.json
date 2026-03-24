@@ -1,0 +1,97 @@
+﻿[
+  {
+    "id": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+    "shop": "grenoa.myshopify.com",
+    "name": "Delhi0",
+    "homepageTemplate": null,
+    "priceMultiplier": 1.2,
+    "status": "active",
+    "createdAt": "2026-03-23T18:48:57.166Z",
+    "updatedAt": "2026-03-24T05:58:07.284Z",
+    "pricingRules": [
+      {
+        "id": "7288d114-023e-443b-992a-deecd2bf2eba",
+        "shop": "grenoa.myshopify.com",
+        "regionId": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+        "type": "percentage",
+        "value": 2,
+        "collectionId": null,
+        "collectionHandle": null,
+        "productId": null,
+        "productHandle": null,
+        "startTime": null,
+        "endTime": null,
+        "priority": 0,
+        "createdAt": "2026-03-24T06:12:14.878Z",
+        "updatedAt": "2026-03-24T06:12:14.878Z"
+      }
+    ],
+    "pincodes": [
+      {
+        "id": "1a57d0a7-2511-4891-8d1f-1517d450fde0",
+        "shop": "grenoa.myshopify.com",
+        "pincode": "110001",
+        "regionId": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+        "createdAt": "2026-03-23T19:27:34.220Z"
+      }
+    ]
+  },
+  {
+    "id": "5f06b704-bd1c-4ff8-9c58-faf5a694b227",
+    "shop": "grenoa.myshopify.com",
+    "name": "Uttar Pradesh",
+    "homepageTemplate": null,
+    "priceMultiplier": 1,
+    "status": "active",
+    "createdAt": "2026-03-24T06:10:21.003Z",
+    "updatedAt": "2026-03-24T06:10:21.003Z",
+    "pricingRules": [
+      {
+        "id": "1b60e666-fd2e-41a4-b2a5-0638814b0839",
+        "shop": "grenoa.myshopify.com",
+        "regionId": "5f06b704-bd1c-4ff8-9c58-faf5a694b227",
+        "type": "fixed_adjustment",
+        "value": 100,
+        "collectionId": null,
+        "collectionHandle": null,
+        "productId": null,
+        "productHandle": null,
+        "startTime": null,
+        "endTime": null,
+        "priority": 0,
+        "createdAt": "2026-03-24T06:12:37.561Z",
+        "updatedAt": "2026-03-24T06:12:37.561Z"
+      }
+    ],
+    "pincodes": []
+  },
+  {
+    "id": "1334176e-cc3d-4d40-b93e-c56c83155f2e",
+    "shop": "grenoa.myshopify.com",
+    "name": "West Bengal",
+    "homepageTemplate": null,
+    "priceMultiplier": 1,
+    "status": "active",
+    "createdAt": "2026-03-24T06:10:38.824Z",
+    "updatedAt": "2026-03-24T06:10:38.824Z",
+    "pricingRules": [
+      {
+        "id": "8f64b108-8eb4-4cc0-bc85-50307dc8d53f",
+        "shop": "grenoa.myshopify.com",
+        "regionId": "1334176e-cc3d-4d40-b93e-c56c83155f2e",
+        "type": "fixed_price",
+        "value": 99,
+        "collectionId": null,
+        "collectionHandle": null,
+        "productId": null,
+        "productHandle": null,
+        "startTime": null,
+        "endTime": null,
+        "priority": 0,
+        "createdAt": "2026-03-24T06:12:54.089Z",
+        "updatedAt": "2026-03-24T06:12:54.089Z"
+      }
+    ],
+    "pincodes": []
+  }
+]

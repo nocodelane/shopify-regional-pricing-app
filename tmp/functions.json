@@ -1,0 +1,12 @@
+[
+  {
+    "id": "019d1c02-7f26-7315-9476-44e5366cd3dd",
+    "title": "pincode-guard",
+    "apiType": "cart_checkout_validation"
+  },
+  {
+    "id": "019d1c02-7f27-7d6f-bc73-c4de19fb1828",
+    "title": "regional-cart-transform",
+    "apiType": "cart_transform"
+  }
+]

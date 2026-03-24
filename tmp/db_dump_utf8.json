@@ -1,0 +1,65 @@
+﻿REGIONS AND RULES:
+[
+  {
+    "id": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+    "shop": "grenoa.myshopify.com",
+    "name": "Delhi0",
+    "homepageTemplate": null,
+    "priceMultiplier": 1.2,
+    "status": "active",
+    "createdAt": "2026-03-23T18:48:57.166Z",
+    "updatedAt": "2026-03-23T19:28:15.724Z",
+    "pricingRules": [
+      {
+        "id": "762e5050-f169-42d8-b39a-7e04071dce2b",
+        "shop": "grenoa.myshopify.com",
+        "regionId": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+        "type": "percentage",
+        "value": 10,
+        "collectionId": "null",
+        "collectionHandle": null,
+        "productId": null,
+        "productHandle": null,
+        "startTime": null,
+        "endTime": null,
+        "priority": 0,
+        "createdAt": "2026-03-23T19:19:21.775Z",
+        "updatedAt": "2026-03-23T19:29:47.699Z"
+      },
+      {
+        "id": "47d1dc4a-4c29-4054-826c-ba774b9f4506",
+        "shop": "grenoa.myshopify.com",
+        "regionId": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+        "type": "percentage",
+        "value": 6,
+        "collectionId": null,
+        "collectionHandle": null,
+        "productId": null,
+        "productHandle": null,
+        "startTime": null,
+        "endTime": null,
+        "priority": 0,
+        "createdAt": "2026-03-23T19:30:01.211Z",
+        "updatedAt": "2026-03-23T19:30:01.211Z"
+      }
+    ]
+  }
+]
+APP CONFIGS:
+[
+  {
+    "id": "713feab4-342c-429a-82b1-ae940ccc12ae",
+    "shop": "grenoa.myshopify.com",
+    "regionalPricingActive": true,
+    "visibilityRulesActive": true,
+    "abTestingActive": false,
+    "waitlistActive": true,
+    "aiFeaturesActive": false,
+    "flashSalesActive": true,
+    "pincodeGuardActive": false,
+    "allowAbsurdPricing": false,
+    "lockoutMessage": "We don't serve your area yet.",
+    "excludedPaths": "/pages/contact, /pages/about",
+    "updatedAt": "2026-03-23T18:44:01.991Z"
+  }
+]

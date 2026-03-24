@@ -30,11 +30,14 @@ export function cartTransformRun(input) {
   }
   
   const operations = input.cart.lines.map(line => {
-    // 1. Check for product-specific multiplier in global rules map
-    // 2. Fallback to global cart-level multiplier
+    // Priority 1: Line-level multiplier (e.g. from properties, for "Buy Now" support)
+    // Priority 2: Product-specific multiplier from global rules map
+    // Priority 3: Global cart-level multiplier fallback
     let lineMultiplier = globalMultiplier;
     
-    if (line.merchandise?.__typename === 'ProductVariant' && line.merchandise.product?.id) {
+    if (line.attribute?.value) {
+      lineMultiplier = Number(line.attribute.value);
+    } else if (line.merchandise?.__typename === 'ProductVariant' && line.merchandise.product?.id) {
        const pid = line.merchandise.product.id;
        if (rules[pid] !== undefined) {
          lineMultiplier = Number(rules[pid]);

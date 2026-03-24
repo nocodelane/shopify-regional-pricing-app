@@ -1,0 +1,29 @@
+﻿RULES WITH 182: [
+  {
+    "id": "2d877d7b-9e24-40c1-bb6e-9508af41fbc7",
+    "shop": "grenoa.myshopify.com",
+    "regionId": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+    "type": "fixed_price",
+    "value": 182,
+    "collectionId": null,
+    "collectionHandle": null,
+    "productId": null,
+    "productHandle": null,
+    "startTime": null,
+    "endTime": null,
+    "priority": 0,
+    "createdAt": "2026-03-23T20:41:09.333Z",
+    "updatedAt": "2026-03-23T20:41:09.333Z",
+    "region": {
+      "id": "4fd567fd-03ce-4cdd-b06e-8511a68294fe",
+      "shop": "grenoa.myshopify.com",
+      "name": "Delhi0",
+      "homepageTemplate": null,
+      "priceMultiplier": 1.2,
+      "status": "active",
+      "createdAt": "2026-03-23T18:48:57.166Z",
+      "updatedAt": "2026-03-23T19:28:15.724Z"
+    }
+  }
+]
+REGIONS WITH 182: []

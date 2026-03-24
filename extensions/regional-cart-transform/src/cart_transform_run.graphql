@@ -9,6 +9,9 @@ query CartTransformRunInput {
     lines {
       id
       quantity
+      attribute(key: "_regionMultiplier") {
+        value
+      }
       merchandise {
         ... on ProductVariant {
           id

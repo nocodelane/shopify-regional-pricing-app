@@ -1,0 +1,3 @@
+Listing all regions for shop: grenoa.myshopify.com
+Found 1 regions.
+ID: 4fd567fd-03ce-4cdd-b06e-8511a68294fe | Name: Delhi0 | Status: active

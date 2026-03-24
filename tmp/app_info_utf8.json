@@ -1,0 +1,1317 @@
+﻿{
+  "idEnvironmentVariableName": "SHOPIFY_API_KEY",
+  "name": "Regional Pricing Pro",
+  "directory": "D:/UGAPP/regional-pricing",
+  "packageManager": "npm",
+  "configuration": {
+    "client_id": "e5d176a5072c8441e9bb21f779c68238",
+    "build": {
+      "automatically_update_urls_on_dev": true
+    },
+    "name": "Regional Pricing Pro",
+    "webhooks": {
+      "api_version": "2024-10"
+    },
+    "access_scopes": {
+      "scopes": "read_cart_transforms,read_validations,write_cart_transforms,write_products,write_validations",
+      "optional_scopes": [],
+      "use_legacy_install_flow": false
+    },
+    "auth": {
+      "redirect_urls": [
+        "https://mercury-respondents-thereby-caring.trycloudflare.com/api/auth"
+      ]
+    },
+    "app_proxy": {
+      "url": "https://mercury-respondents-thereby-caring.trycloudflare.com",
+      "subpath": "regional-sync-api",
+      "prefix": "apps"
+    },
+    "application_url": "https://mercury-respondents-thereby-caring.trycloudflare.com",
+    "embedded": true,
+    "path": "D:/UGAPP/regional-pricing/shopify.app.regional-pricing-pro.toml"
+  },
+  "nodeDependencies": {
+    "@prisma/client": "^6.19.2",
+    "@remix-run/dev": "^2.16.1",
+    "@remix-run/fs-routes": "^2.16.1",
+    "@remix-run/node": "^2.16.1",
+    "@remix-run/react": "^2.16.1",
+    "@remix-run/serve": "^2.16.1",
+    "@shopify/app-bridge-react": "^4.1.6",
+    "@shopify/polaris": "^12.0.0",
+    "@shopify/shopify-app-remix": "^4.1.0",
+    "@shopify/shopify-app-session-storage-prisma": "^8.0.0",
+    "dotenv": "^17.3.1",
+    "isbot": "^5.1.0",
+    "lru-cache": "^11.2.7",
+    "prisma": "^6.19.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite-tsconfig-paths": "^5.0.1",
+    "@remix-run/eslint-config": "^2.16.1",
+    "@remix-run/route-config": "^2.16.1",
+    "@shopify/api-codegen-preset": "^1.1.1",
+    "@types/eslint": "^9.6.1",
+    "@types/node": "^22.2.0",
+    "@types/react": "^18.2.31",
+    "@types/react-dom": "^18.2.14",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^10.0.1",
+    "prettier": "^3.2.4",
+    "typescript": "^5.2.2",
+    "vite": "^6.2.2"
+  },
+  "webs": [
+    {
+      "directory": "D:/UGAPP/regional-pricing",
+      "configuration": {
+        "webhooks_path": "/webhooks/app/uninstalled",
+        "commands": {
+          "predev": "npx prisma generate",
+          "dev": "npx prisma migrate deploy && npm exec remix vite:dev"
+        },
+        "name": "remix",
+        "roles": [
+          "frontend",
+          "backend"
+        ],
+        "path": "D:/UGAPP/regional-pricing/shopify.web.toml"
+      },
+      "framework": "remix"
+    }
+  ],
+  "realExtensions": [
+    {
+      "configuration": {
+        "name": "t:name",
+        "type": "function",
+        "handle": "pincode-guard",
+        "uid": "86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1",
+        "description": "t:description",
+        "api_version": "2026-01",
+        "build": {
+          "path": "dist/function.wasm",
+          "wasm_opt": true
+        },
+        "configuration_ui": true,
+        "targeting": [
+          {
+            "target": "cart.validations.generate.run",
+            "input_query": "src/cart_validations_generate_run.graphql",
+            "export": "cart-validations-generate-run"
+          }
+        ]
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/extensions/pincode-guard/shopify.extension.toml",
+      "entrySourceFilePath": "D:/UGAPP/regional-pricing/extensions/pincode-guard/src/index.js",
+      "directory": "D:/UGAPP/regional-pricing/extensions/pincode-guard",
+      "specification": {
+        "externalIdentifier": "function",
+        "additionalIdentifiers": [
+          "order_discounts",
+          "cart_checkout_validation",
+          "cart_transform",
+          "delivery_customization",
+          "payment_customization",
+          "product_discounts",
+          "shipping_discounts",
+          "fulfillment_constraints",
+          "order_routing_location_rule",
+          "local_pickup_delivery_option_generator",
+          "pickup_point_delivery_option_generator"
+        ],
+        "externalName": "function",
+        "partnersWebIdentifier": "function",
+        "registrationLimit": 100,
+        "experience": "extension",
+        "uidStrategy": "uuid",
+        "buildConfig": {
+          "mode": "function"
+        },
+        "identifier": "function",
+        "name": "function",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 100,
+          "uidIsClientProvided": true
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "pincode-guard",
+      "localIdentifier": "pincode-guard",
+      "idEnvironmentVariableName": "SHOPIFY_PINCODE_GUARD_ID",
+      "outputPath": "D:/UGAPP/regional-pricing/extensions/pincode-guard/dist/function.wasm",
+      "uid": "86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1",
+      "devUUID": "dev-86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1"
+    },
+    {
+      "configuration": {
+        "name": "region-pincode-extension",
+        "type": "theme",
+        "uid": "3164aee0-fa90-4195-e25c-14465edf0a26aeb99a5e"
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/extensions/region-pincode-extension/shopify.extension.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing/extensions/region-pincode-extension",
+      "specification": {
+        "externalIdentifier": "theme_app_extension",
+        "additionalIdentifiers": [],
+        "externalName": "Online Store - App Theme Extension",
+        "partnersWebIdentifier": "theme_app_extension",
+        "registrationLimit": 1,
+        "experience": "extension",
+        "uidStrategy": "uuid",
+        "buildConfig": {
+          "mode": "theme"
+        },
+        "identifier": "theme",
+        "graphQLType": "theme_app_extension",
+        "name": "Online Store - App Theme Extension",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": true
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "region-pincode-extension",
+      "localIdentifier": "region-pincode-extension",
+      "idEnvironmentVariableName": "SHOPIFY_REGION_PINCODE_EXTENSION_ID",
+      "outputPath": "D:/UGAPP/regional-pricing/extensions/region-pincode-extension",
+      "uid": "3164aee0-fa90-4195-e25c-14465edf0a26aeb99a5e",
+      "devUUID": "dev-3164aee0-fa90-4195-e25c-14465edf0a26aeb99a5e"
+    },
+    {
+      "configuration": {
+        "name": "t:name",
+        "type": "function",
+        "handle": "regional-cart-transform",
+        "uid": "30de25dc-225f-18fd-0f07-36d874bdb56c634ba302",
+        "description": "t:description",
+        "api_version": "2026-01",
+        "build": {
+          "path": "dist/function.wasm",
+          "wasm_opt": true
+        },
+        "configuration_ui": true,
+        "ui": {
+          "paths": {
+            "create": "/",
+            "details": "/"
+          }
+        },
+        "targeting": [
+          {
+            "target": "cart.transform.run",
+            "input_query": "src/cart_transform_run.graphql",
+            "export": "cart-transform-run"
+          }
+        ]
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform/shopify.extension.toml",
+      "entrySourceFilePath": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform/src/index.js",
+      "directory": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform",
+      "specification": {
+        "externalIdentifier": "function",
+        "additionalIdentifiers": [
+          "order_discounts",
+          "cart_checkout_validation",
+          "cart_transform",
+          "delivery_customization",
+          "payment_customization",
+          "product_discounts",
+          "shipping_discounts",
+          "fulfillment_constraints",
+          "order_routing_location_rule",
+          "local_pickup_delivery_option_generator",
+          "pickup_point_delivery_option_generator"
+        ],
+        "externalName": "function",
+        "partnersWebIdentifier": "function",
+        "registrationLimit": 100,
+        "experience": "extension",
+        "uidStrategy": "uuid",
+        "buildConfig": {
+          "mode": "function"
+        },
+        "identifier": "function",
+        "name": "function",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 100,
+          "uidIsClientProvided": true
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "regional-cart-transform",
+      "localIdentifier": "regional-cart-transform",
+      "idEnvironmentVariableName": "SHOPIFY_REGIONAL_CART_TRANSFORM_ID",
+      "outputPath": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform/dist/function.wasm",
+      "uid": "30de25dc-225f-18fd-0f07-36d874bdb56c634ba302",
+      "devUUID": "dev-30de25dc-225f-18fd-0f07-36d874bdb56c634ba302"
+    },
+    {
+      "configuration": {
+        "name": "Regional Pricing Pro",
+        "access_scopes": {
+          "scopes": "read_cart_transforms,read_validations,write_cart_transforms,write_products,write_validations",
+          "optional_scopes": [],
+          "use_legacy_install_flow": false
+        },
+        "auth": {
+          "redirect_urls": [
+            "https://mercury-respondents-thereby-caring.trycloudflare.com/api/auth"
+          ]
+        }
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/shopify.app.regional-pricing-pro.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing",
+      "specification": {
+        "externalIdentifier": "app_access",
+        "additionalIdentifiers": [],
+        "externalName": "App access",
+        "partnersWebIdentifier": "app_access",
+        "registrationLimit": 1,
+        "experience": "configuration",
+        "uidStrategy": "single",
+        "buildConfig": {
+          "mode": "none"
+        },
+        "identifier": "app_access",
+        "name": "App access",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": false
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "app_access",
+      "localIdentifier": "app_access",
+      "idEnvironmentVariableName": "SHOPIFY_APP_ACCESS_ID",
+      "outputPath": "D:/UGAPP/regional-pricing",
+      "uid": "app_access",
+      "devUUID": "dev-app_access"
+    },
+    {
+      "configuration": {
+        "name": "Regional Pricing Pro",
+        "webhooks": {
+          "api_version": "2024-10"
+        }
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/shopify.app.regional-pricing-pro.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing",
+      "specification": {
+        "externalIdentifier": "webhooks",
+        "additionalIdentifiers": [],
+        "externalName": "Imperative Webhooks Api Version",
+        "partnersWebIdentifier": "webhooks",
+        "registrationLimit": 1,
+        "experience": "configuration",
+        "uidStrategy": "single",
+        "buildConfig": {
+          "mode": "none"
+        },
+        "identifier": "webhooks",
+        "name": "Imperative Webhooks Api Version",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": false
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "webhooks",
+      "localIdentifier": "webhooks",
+      "idEnvironmentVariableName": "SHOPIFY_WEBHOOKS_ID",
+      "outputPath": "D:/UGAPP/regional-pricing",
+      "uid": "webhooks",
+      "devUUID": "dev-webhooks"
+    },
+    {
+      "configuration": {
+        "name": "Regional Pricing Pro",
+        "app_proxy": {
+          "url": "https://mercury-respondents-thereby-caring.trycloudflare.com",
+          "subpath": "regional-sync-api",
+          "prefix": "apps"
+        }
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/shopify.app.regional-pricing-pro.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing",
+      "specification": {
+        "externalIdentifier": "app_proxy",
+        "additionalIdentifiers": [],
+        "externalName": "App Proxy",
+        "partnersWebIdentifier": "app_proxy",
+        "registrationLimit": 1,
+        "experience": "configuration",
+        "uidStrategy": "single",
+        "buildConfig": {
+          "mode": "none"
+        },
+        "identifier": "app_proxy",
+        "name": "App Proxy",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": false
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "app_proxy",
+      "localIdentifier": "app_proxy",
+      "idEnvironmentVariableName": "SHOPIFY_APP_PROXY_ID",
+      "outputPath": "D:/UGAPP/regional-pricing",
+      "uid": "app_proxy",
+      "devUUID": "dev-app_proxy"
+    },
+    {
+      "configuration": {
+        "name": "Regional Pricing Pro",
+        "application_url": "https://mercury-respondents-thereby-caring.trycloudflare.com",
+        "embedded": true
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/shopify.app.regional-pricing-pro.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing",
+      "specification": {
+        "externalIdentifier": "app_home",
+        "additionalIdentifiers": [],
+        "externalName": "App Home",
+        "partnersWebIdentifier": "app_home",
+        "registrationLimit": 1,
+        "experience": "configuration",
+        "uidStrategy": "single",
+        "buildConfig": {
+          "mode": "none"
+        },
+        "identifier": "app_home",
+        "name": "App Home",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": false
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "app_home",
+      "localIdentifier": "app_home",
+      "idEnvironmentVariableName": "SHOPIFY_APP_HOME_ID",
+      "outputPath": "D:/UGAPP/regional-pricing",
+      "uid": "app_home",
+      "devUUID": "dev-app_home"
+    },
+    {
+      "configuration": {
+        "name": "Regional Pricing Pro"
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/shopify.app.regional-pricing-pro.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing",
+      "specification": {
+        "externalIdentifier": "branding",
+        "additionalIdentifiers": [],
+        "externalName": "Branding",
+        "partnersWebIdentifier": "branding",
+        "registrationLimit": 1,
+        "experience": "configuration",
+        "uidStrategy": "single",
+        "buildConfig": {
+          "mode": "none"
+        },
+        "identifier": "branding",
+        "name": "Branding",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": false
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "branding",
+      "localIdentifier": "branding",
+      "idEnvironmentVariableName": "SHOPIFY_BRANDING_ID",
+      "outputPath": "D:/UGAPP/regional-pricing",
+      "uid": "branding",
+      "devUUID": "dev-branding"
+    }
+  ],
+  "usesWorkspaces": true,
+  "specifications": [
+    {
+      "externalIdentifier": "admin_link",
+      "additionalIdentifiers": [],
+      "externalName": "Admin Link",
+      "partnersWebIdentifier": "admin_link",
+      "registrationLimit": 40,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "admin_link",
+      "name": "Admin Link",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 40,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"title\":\"Admin Link Contract\",\"description\":\"Admin Link extension configuration contract\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"name\":{\"title\":\"Name\",\"description\":\"Text to be displayed on the surface\",\"type\":\"string\",\"maxLength\":40},\"description\":{\"title\":\"Description\",\"description\":\"Description of the link\",\"type\":\"string\",\"maxLength\":500,\"minLength\":12},\"targeting\":{\"title\":\"Targeting\",\"type\":\"array\",\"minItems\":1,\"maxItems\":1,\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"url\":{\"title\":\"Link URL\",\"description\":\"URL or app path to be navigated to when the link is clicked\",\"type\":\"string\",\"pattern\":\"^((https?)|(app):\\/\\/)?\",\"maxLength\":800},\"target\":{\"title\":\"Target\",\"description\":\"Target in the surface where the link will be rendered\",\"type\":\"string\",\"enum\":[\"admin.abandoned-checkout-details.action.link\",\"admin.discount-index.action.link\",\"admin.discount-index.selection-action.link\",\"admin.discount-details.action.link\",\"admin.customer-index.action.link\",\"admin.customer-index.selection-action.link\",\"admin.customer-details.action.link\",\"admin.order-index.action.link\",\"admin.order-index.selection-action.link\",\"admin.order-details.action.link\",\"admin.draft-order-details.action.link\",\"admin.draft-order-index.action.link\",\"admin.draft-order-index.selection-action.link\",\"admin.product-index.action.link\",\"admin.product-index.selection-action.link\",\"admin.product-details.action.link\",\"admin.product-variant-details.action.link\",\"admin.product-variant-index.selection-action.link\",\"admin.collection-details.action.link\",\"admin.collection-index.action.link\",\"admin.order-fulfilled-card.action.link\",\"admin.app.support.link\",\"admin.page-index.action.link\",\"admin.page-details.action.link\",\"admin.blog-details.action.link\",\"admin.article-details.action.link\",\"admin.app.intent.link\"]},\"intents\":{\"title\":\"Intents\",\"description\":\"App intents configuration for admin.app.intent.render target\",\"type\":\"array\",\"maxItems\":5,\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"action\":{\"title\":\"Action\",\"description\":\"The intent action identifier\",\"type\":\"string\",\"minLength\":1,\"maxLength\":255},\"type\":{\"title\":\"Type\",\"description\":\"The intent type\",\"type\":\"string\",\"minLength\":1,\"maxLength\":100},\"schema\":{\"title\":\"Schema\",\"description\":\"Module reference for the schema\",\"oneOf\":[{\"type\":\"string\"},{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"module\":{\"type\":\"string\"},\"path\":{\"type\":\"string\"},\"compressed_path\":{\"type\":\"string\"}}}]}},\"required\":[\"action\",\"type\",\"schema\"]}},\"tools\":{\"title\":\"Tools\",\"description\":\"Tools JSON schema\",\"oneOf\":[{\"type\":\"string\"},{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"module\":{\"type\":\"string\"},\"path\":{\"type\":\"string\"},\"compressed_path\":{\"type\":\"string\"}}}]},\"instructions\":{\"title\":\"Instructions\",\"description\":\"Instructions markdown file\",\"oneOf\":[{\"type\":\"string\"},{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"module\":{\"type\":\"string\"},\"path\":{\"type\":\"string\"},\"compressed_path\":{\"type\":\"string\"}}}]},\"build_manifest\":{\"title\":\"Build Manifest\",\"description\":\"Build-time manifest for asset processing\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"assets\":{\"title\":\"Assets\",\"description\":\"Asset configurations\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"intents\":{\"title\":\"Intent Assets\",\"description\":\"Schema files for intents\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"filepath\":{\"title\":\"Filepath\",\"description\":\"Path to the schema file to upload\",\"type\":\"string\"},\"module\":{\"title\":\"Module\",\"description\":\"Module reference for the schema\",\"type\":\"string\"},\"static\":{\"title\":\"Static\",\"description\":\"Whether the asset is static\",\"type\":\"boolean\"}},\"required\":[\"filepath\",\"module\"]}},\"tools\":{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"filepath\":{\"title\":\"Filepath\",\"description\":\"Path to the schema file to upload\",\"type\":\"string\"},\"module\":{\"title\":\"Module\",\"description\":\"Module reference for the schema\",\"type\":\"string\"},\"static\":{\"title\":\"Static\",\"description\":\"Whether the asset is static\",\"type\":\"boolean\"}},\"required\":[\"filepath\",\"module\"]},\"instructions\":{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"filepath\":{\"title\":\"Filepath\",\"description\":\"Path to the schema file to upload\",\"type\":\"string\"},\"module\":{\"title\":\"Module\",\"description\":\"Module reference for the schema\",\"type\":\"string\"},\"static\":{\"title\":\"Static\",\"description\":\"Whether the asset is static\",\"type\":\"boolean\"}},\"required\":[\"filepath\",\"module\"]}}}}}},\"required\":[\"url\",\"target\"]}},\"localization\":{\"title\":\"Localization\",\"description\":\"Localization of the link text\",\"type\":\"object\",\"additionalProperties\":true},\"uploaded_files\":{\"title\":\"Uploaded Files\",\"description\":\"Uploaded files for the module\",\"type\":\"object\",\"additionalProperties\":true}},\"required\":[\"name\",\"targeting\"]}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "flow_action",
+      "additionalIdentifiers": [],
+      "externalName": "Flow Action",
+      "partnersWebIdentifier": "flow_action",
+      "registrationLimit": 100,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "flow_action",
+      "name": "Flow Action",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 100,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "flow_trigger_lifecycle_callback",
+      "additionalIdentifiers": [],
+      "externalName": "Flow Trigger Lifecycle Callback",
+      "partnersWebIdentifier": "flow_trigger_lifecycle_callback",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "flow_trigger_lifecycle_callback",
+      "name": "Flow Trigger Lifecycle Callback",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"title\":\"Generated schema for Root\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"name\":{\"type\":\"string\"},\"url\":{\"type\":\"string\",\"pattern\":\"^(https:\\/\\/)\"}}}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "flow_trigger",
+      "additionalIdentifiers": [],
+      "externalName": "Flow Trigger",
+      "partnersWebIdentifier": "flow_trigger",
+      "registrationLimit": 100,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "flow_trigger",
+      "name": "Flow Trigger",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 100,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "flow_template",
+      "additionalIdentifiers": [],
+      "externalName": "Flow Template",
+      "partnersWebIdentifier": "flow_template",
+      "registrationLimit": 300,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "copy_files",
+        "filePatterns": [
+          "*.flow",
+          "*.json",
+          "*.toml"
+        ]
+      },
+      "identifier": "flow_template",
+      "name": "Flow Template",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 300,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "function",
+      "additionalIdentifiers": [
+        "order_discounts",
+        "cart_checkout_validation",
+        "cart_transform",
+        "delivery_customization",
+        "payment_customization",
+        "product_discounts",
+        "shipping_discounts",
+        "fulfillment_constraints",
+        "order_routing_location_rule",
+        "local_pickup_delivery_option_generator",
+        "pickup_point_delivery_option_generator"
+      ],
+      "externalName": "function",
+      "partnersWebIdentifier": "function",
+      "registrationLimit": 100,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "function"
+      },
+      "identifier": "function",
+      "name": "function",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 100,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "ui_extension",
+      "additionalIdentifiers": [],
+      "externalName": "UI Extension",
+      "partnersWebIdentifier": "ui_extension",
+      "registrationLimit": 50,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "ui"
+      },
+      "identifier": "ui_extension",
+      "dependency": "@shopify/checkout-ui-extensions",
+      "name": "UI Extension",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 50,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "editor_extension_collection",
+      "additionalIdentifiers": [],
+      "externalName": "Editor extension collection",
+      "partnersWebIdentifier": "editor_extension_collection",
+      "registrationLimit": 100,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "editor_extension_collection",
+      "name": "Editor extension collection",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 100,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "webhook_subscription",
+      "additionalIdentifiers": [],
+      "externalName": "Webhooks Subscriptions",
+      "partnersWebIdentifier": "webhook_subscription",
+      "registrationLimit": 1000,
+      "experience": "configuration",
+      "uidStrategy": "dynamic",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "webhook_subscription",
+      "name": "Webhooks Subscriptions",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1000,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "privacy_compliance_webhooks",
+      "additionalIdentifiers": [],
+      "externalName": "Privacy Compliance Webhooks",
+      "partnersWebIdentifier": "privacy_compliance_webhooks",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "privacy_compliance_webhooks",
+      "name": "Privacy Compliance Webhooks",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "app_access",
+      "additionalIdentifiers": [],
+      "externalName": "App access",
+      "partnersWebIdentifier": "app_access",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "app_access",
+      "name": "App access",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "webhooks",
+      "additionalIdentifiers": [],
+      "externalName": "Imperative Webhooks Api Version",
+      "partnersWebIdentifier": "webhooks",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "webhooks",
+      "name": "Imperative Webhooks Api Version",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "app_proxy",
+      "additionalIdentifiers": [],
+      "externalName": "App Proxy",
+      "partnersWebIdentifier": "app_proxy",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "app_proxy",
+      "name": "App Proxy",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "point_of_sale",
+      "additionalIdentifiers": [],
+      "externalName": "Point Of Sale Configuration",
+      "partnersWebIdentifier": "point_of_sale",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "point_of_sale",
+      "name": "Point Of Sale Configuration",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "app_home",
+      "additionalIdentifiers": [],
+      "externalName": "App Home",
+      "partnersWebIdentifier": "app_home",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "app_home",
+      "name": "App Home",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "branding",
+      "additionalIdentifiers": [],
+      "externalName": "Branding",
+      "partnersWebIdentifier": "branding",
+      "registrationLimit": 1,
+      "experience": "configuration",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "branding",
+      "name": "Branding",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "channel_config",
+      "additionalIdentifiers": [],
+      "externalName": "Channel Configuration",
+      "partnersWebIdentifier": "channel_config",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "copy_files",
+        "filePatterns": [
+          "specifications/**/*.json",
+          "specifications/**/*.toml",
+          "specifications/**/*.yaml",
+          "specifications/**/*.yml",
+          "specifications/**/*.svg"
+        ]
+      },
+      "identifier": "channel_config",
+      "name": "Channel Configuration",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"title\":\"Channel config schema\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"name\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"specifications\":{\"type\":\"object\"},\"create_legacy_channel_on_app_install\":{\"type\":\"boolean\"}},\"required\":[\"name\"]}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "post_purchase_ui",
+      "additionalIdentifiers": [],
+      "externalName": "Checkout Post Purchase",
+      "surface": "post_purchase",
+      "partnersWebIdentifier": "post_purchase",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "ui"
+      },
+      "identifier": "checkout_post_purchase",
+      "dependency": "@shopify/post-purchase-ui-extensions",
+      "name": "Checkout Post Purchase",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "checkout_ui",
+      "additionalIdentifiers": [],
+      "externalName": "Checkout Extension",
+      "partnersWebIdentifier": "checkout_ui_extension",
+      "registrationLimit": 50,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "ui"
+      },
+      "identifier": "checkout_ui_extension",
+      "dependency": "@shopify/checkout-ui-extensions",
+      "name": "Checkout Extension",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 50,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "customer_authentication",
+      "additionalIdentifiers": [],
+      "externalName": "Customer Authentication",
+      "partnersWebIdentifier": "customer_authentication",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "customer_authentication",
+      "name": "Customer Authentication",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"title\":\"Customer Authentication Configuration\",\"description\":\"Configuration for customer authentication functionality\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"customer_authentication\":{\"type\":\"object\",\"description\":\"Customer Authentication Configuration\",\"properties\":{\"redirect_uris\":{\"type\":\"array\",\"description\":\"Redirect URIs used for authentication flows\",\"items\":{\"type\":\"string\",\"pattern\":\"^https?:\\/\\/\"}},\"javascript_origins\":{\"type\":\"array\",\"description\":\"JavaScript origins for customer authentication (scheme and host only, no paths or ports)\",\"items\":{\"type\":\"string\",\"pattern\":\"^https?:\\/\\/[a-z0-9\\\\-\\\\.]+$\"}},\"logout_urls\":{\"type\":\"array\",\"description\":\"Logout URLs for customer authentication\",\"items\":{\"type\":\"string\",\"pattern\":\"^https?:\\/\\/\"}}},\"required\":[\"redirect_uris\"],\"additionalProperties\":false}}}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "subscription_ui",
+      "additionalIdentifiers": [
+        "subscription_management"
+      ],
+      "externalName": "Product Subscription",
+      "partnersWebIdentifier": "product_subscription",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "ui"
+      },
+      "identifier": "product_subscription",
+      "dependency": "@shopify/admin-ui-extensions",
+      "graphQLType": "subscription_management",
+      "name": "Product Subscription",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "marketing_activity",
+      "additionalIdentifiers": [],
+      "externalName": "Marketing Activity",
+      "partnersWebIdentifier": "marketing_activity",
+      "registrationLimit": 100,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "marketing_activity",
+      "name": "Marketing Activity",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 100,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"title\":\"Generated schema for Root\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"name\":{\"type\":\"string\"},\"title\":{\"type\":\"string\",\"minLength\":1},\"description\":{\"type\":\"string\",\"minLength\":1},\"api_path\":{\"type\":\"string\"},\"tactic\":{\"type\":\"string\",\"enum\":[\"ad\",\"retargeting\",\"post\",\"message\",\"transactional\",\"newsletter\",\"abandoned_cart\",\"affililate\",\"loyalty\",\"link\",\"storefront_app\"]},\"marketing_channel\":{\"type\":\"string\",\"enum\":[\"social\",\"search\",\"email\",\"sms\",\"display\",\"marketplace\"]},\"referring_domain\":{\"type\":\"string\"},\"is_automation\":{\"type\":\"boolean\"},\"use_external_editor\":{\"type\":\"boolean\"},\"preview_data\":{\"type\":\"object\",\"properties\":{\"types\":{\"type\":\"array\",\"minItems\":1,\"maxItems\":3,\"items\":{\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"label\",\"value\"]}}},\"required\":[\"types\"]},\"fields\":{\"type\":\"array\",\"minItems\":1,\"items\":{\"type\":\"object\",\"oneOf\":[{\"$ref\":\"#\\/definitions\\/BudgetScheduleField\"},{\"$ref\":\"#\\/definitions\\/DiscountPickerField\"},{\"$ref\":\"#\\/definitions\\/ScheduleField\"},{\"$ref\":\"#\\/definitions\\/ProductPickerField\"},{\"$ref\":\"#\\/definitions\\/SingleLineTextField\"},{\"$ref\":\"#\\/definitions\\/TextMultiLineField\"},{\"$ref\":\"#\\/definitions\\/DividerField\"},{\"$ref\":\"#\\/definitions\\/SelectField\"},{\"$ref\":\"#\\/definitions\\/ParagraphField\"},{\"$ref\":\"#\\/definitions\\/TypeAheadField\"},{\"$ref\":\"#\\/definitions\\/NumberField\"},{\"$ref\":\"#\\/definitions\\/ImagePickerField\"}]}}},\"required\":[\"title\",\"description\",\"api_path\",\"tactic\",\"marketing_channel\",\"fields\"],\"definitions\":{\"BaseField\":{\"type\":\"object\",\"properties\":{\"ui_type\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"ui_type\",\"name\"]},\"CommonField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/BaseField\"},{\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\"},\"help_text\":{\"type\":\"string\"},\"required\":{\"type\":\"boolean\"}},\"required\":[\"label\",\"required\"]}]},\"BudgetScheduleField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"budget-schedule\"]},\"use_scheduling\":{\"type\":\"boolean\"},\"use_end_date\":{\"type\":\"boolean\"},\"use_daily_budget\":{\"type\":\"boolean\"},\"use_lifetime_budget\":{\"type\":\"boolean\"}},\"required\":[\"use_daily_budget\",\"use_lifetime_budget\"]}]},\"DiscountPickerField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"discount-picker\"]},\"min_resources\":{\"type\":\"number\"},\"max_resources\":{\"type\":\"number\"}}}]},\"ScheduleField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"schedule\"]},\"use_end_date\":{\"type\":\"boolean\"}},\"required\":[\"use_end_date\"]}]},\"ProductPickerField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"product-picker\"]},\"allow_product_image_selection\":{\"type\":\"boolean\"},\"allow_uploaded_image_as_product_image\":{\"type\":\"boolean\"},\"allow_free_image_as_product_image\":{\"type\":\"boolean\"},\"min_resources\":{\"type\":\"number\"},\"max_resources\":{\"type\":\"number\"},\"min_image_select_per_product\":{\"oneOf\":[{\"type\":\"number\"},{\"type\":\"string\",\"enum\":[\"\"]}]},\"max_image_select_per_product\":{\"oneOf\":[{\"type\":\"number\"},{\"type\":\"string\",\"enum\":[\"\"]}]}},\"required\":[\"allow_product_image_selection\",\"allow_uploaded_image_as_product_image\",\"allow_free_image_as_product_image\"]}]},\"SingleLineTextField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"text-single-line\",\"text-email\",\"text-tel\",\"text-url\"]},\"placeholder\":{\"type\":\"string\"},\"min_length\":{\"type\":\"number\"},\"max_length\":{\"type\":\"number\"}},\"required\":[\"min_length\",\"max_length\"]}]},\"TextMultiLineField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"text-multi-line\"]},\"placeholder\":{\"type\":\"string\"},\"min_length\":{\"type\":\"number\"},\"max_length\":{\"type\":\"number\"}},\"required\":[\"placeholder\",\"min_length\",\"max_length\"]}]},\"DividerField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/BaseField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"divider\"]},\"title\":{\"type\":\"string\"}},\"required\":[\"title\"]}]},\"SelectField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"select-single\",\"select-multiple\"]},\"choices\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"label\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"label\",\"value\"]}}},\"required\":[\"choices\"]}]},\"ParagraphField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/BaseField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"paragraph\"]},\"heading\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"}}}]},\"TypeAheadField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"type-ahead\"]},\"placeholder\":{\"type\":\"string\"}},\"required\":[\"placeholder\"]}]},\"NumberField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"number-float\",\"number-integer\"]},\"min\":{\"type\":\"number\"},\"max\":{\"type\":\"number\"},\"step\":{\"type\":\"number\"}},\"required\":[\"min\",\"max\",\"step\"]}]},\"ImagePickerField\":{\"allOf\":[{\"$ref\":\"#\\/definitions\\/CommonField\"},{\"type\":\"object\",\"properties\":{\"ui_type\":{\"enum\":[\"image-picker\"]},\"min_resources\":{\"type\":\"number\"},\"max_resources\":{\"type\":\"number\"},\"allow_free_images\":{\"type\":\"boolean\"},\"alt_text_required\":{\"type\":\"boolean\"}},\"required\":[\"min_resources\",\"max_resources\",\"allow_free_images\",\"alt_text_required\"]}]}}}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "web_pixel",
+      "additionalIdentifiers": [],
+      "externalName": "Web Pixel Extension",
+      "partnersWebIdentifier": "web_pixel",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "ui"
+      },
+      "identifier": "web_pixel_extension",
+      "dependency": "@shopify/web-pixels-extension",
+      "name": "Web Pixel Extension",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "data",
+      "additionalIdentifiers": [],
+      "externalName": "Custom data",
+      "partnersWebIdentifier": "data",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "single",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "data",
+      "name": "Custom data",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": false
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"metafields\":{\"$ref\":\"#\\/definitions\\/MetafieldsOptions\"},\"company\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[company.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_customers, write_companies\"},\"company_location\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[company_location.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_customers, write_companies\"},\"payment_customization\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[payment_customization.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_payment_customizations\"},\"validation\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[validation.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires no additional access scopes\"},\"customer\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"standard_metafields\":{\"type\":\"array\",\"minItems\":1,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"enum\":[\"facts.birth_date\"]},\"title\":\"Standard Metafield Definition Templates\",\"description\":\"Array of standard metafield definition templates to enable. Each identifier is in the format 'namespace.key' (e.g. 'facts.isbn', 'reviews.rating'). These are pre-defined metafield definitions provided by Shopify.\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[customer.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_customers\"},\"delivery_customization\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[delivery_customization.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_delivery_customizations\"},\"draft_order\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[draft_order.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_draft_orders\"},\"gift_card_transaction\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[gift_card_transaction.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_gift_card_transactions\"},\"market\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[market.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_markets, write_analytics_overviews, write_reports, write_products, write_domains, write_admin_shop_settings\"},\"cart_transform\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[cart_transform.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_cart_transforms\"},\"collection\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[collection.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_products\"},\"product\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"standard_metafields\":{\"type\":\"array\",\"minItems\":1,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"enum\":[\"descriptors.subtitle\",\"descriptors.care_guide\",\"facts.isbn\",\"facts.upc\",\"facts.ean\",\"reviews.rating\",\"reviews.rating_count\",\"shopify--discovery--product_recommendation.related_products\",\"shopify--discovery--product_recommendation.related_products_display\",\"shopify--discovery--product_search_boost.queries\",\"shopify--discovery--product_recommendation.complementary_products\",\"import_information.trade_item_description\",\"import_information.product_transport_declaration\",\"shopify--facts.mpn\"]},\"title\":\"Standard Metafield Definition Templates\",\"description\":\"Array of standard metafield definition templates to enable. Each identifier is in the format 'namespace.key' (e.g. 'facts.isbn', 'reviews.rating'). These are pre-defined metafield definitions provided by Shopify.\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[product.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_products\"},\"variant\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"standard_metafields\":{\"type\":\"array\",\"minItems\":1,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"enum\":[\"descriptors.subtitle\",\"descriptors.care_guide\",\"facts.isbn\",\"facts.upc\",\"facts.ean\",\"reviews.rating\",\"reviews.rating_count\",\"import_information.trade_item_description\",\"import_information.product_transport_declaration\",\"shopify--facts.mpn\",\"shopify.external_url\"]},\"title\":\"Standard Metafield Definition Templates\",\"description\":\"Array of standard metafield definition templates to enable. Each identifier is in the format 'namespace.key' (e.g. 'facts.isbn', 'reviews.rating'). These are pre-defined metafield definitions provided by Shopify.\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[variant.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_products\"},\"selling_plan\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[selling_plan.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_products\"},\"article\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[article.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_content, write_online_store_pages\"},\"blog\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[blog.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_content, write_online_store_pages\"},\"page\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[page.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_content, write_online_store_pages\"},\"fulfillment_constraint_rule\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[fulfillment_constraint_rule.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_fulfillment_constraint_rules\"},\"order_routing_location_rule\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[order_routing_location_rule.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_shipping\"},\"discount\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[discount.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_discounts\"},\"order\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[order.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_orders\"},\"location\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[location.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_locations\"},\"shop\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[shop.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires no additional access scopes\"},\"delivery_method\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[delivery_method.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires one of the following access scopes: write_assigned_fulfillment_orders, write_merchant_managed_fulfillment_orders, write_third_party_fulfillment_orders, write_buyer_membership_orders\"},\"delivery_option_generator\":{\"type\":\"object\",\"required\":[\"metafields\"],\"additionalProperties\":false,\"properties\":{\"metafields\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"},\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetafieldsCollection\"}}}},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Namespaces for metafields under this owner type. For example, `[delivery_option_generator.metafields.app.example]` creates a metafield under the `$app` namespace, with the key `example`.\\n\\nRequires the following access scope: write_shipping\"},\"metaobjects\":{\"$ref\":\"#\\/definitions\\/MetaobjectNamespaces\"}},\"definitions\":{\"MetafieldsOptions\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"api_version\"],\"properties\":{\"api_version\":{\"$ref\":\"#\\/definitions\\/ApiVersion\"}},\"title\":\"Custom Data\",\"description\":\"Shopify's platform includes data models for fundamental commerce concepts such as products, collections, and orders out of the box. However, commerce is diverse and often requires more complex or specific data models. The custom data platform enables you to extend Shopify's data models and create your own by using the following resources:\\n\\n- [Metafields](https:\\/\\/shopify.dev\\/docs\\/apps\\/build\\/custom-data\\/metafields): Define and associate custom fields with Shopify resources such as products.\\n\\n- [Metaobjects](https:\\/\\/shopify.dev\\/docs\\/apps\\/build\\/custom-data\\/metaobjects): Define and create custom data structures within Shopify.\"},\"ApiVersion\":{\"type\":\"string\",\"enum\":[\"2025-04\",\"2025-07\",\"2025-10\",\"2026-01\",\"2026-04\",\"unstable\"],\"title\":\"Admin API\",\"description\":\"The Admin API lets you build apps and integrations that extend and enhance the Shopify admin.\"},\"MetaobjectNamespaces\":{\"type\":\"object\",\"additionalProperties\":false,\"anyOf\":[{\"required\":[\"app\"]},{\"required\":[\"standard_metaobjects\"]}],\"properties\":{\"app\":{\"$ref\":\"#\\/definitions\\/MetaobjectsCollection\"},\"standard_metaobjects\":{\"$ref\":\"#\\/definitions\\/StandardMetaobjectDefinitionTemplates\"}},\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"App namespaces for metaobjects.\"},\"MetaobjectsCollection\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/MetaObject\"},\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"Each entry here represents a metaobject definition. For instance, `[metaobjects.app.author]` becomes a metaobject definition of type `$app:author`.\"},\"MetaObject\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"fields\"],\"properties\":{\"name\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"The human-readable name.\"},\"description\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"The administrative description.\"},\"display_name_field\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"The key of a field to reference as the display name for each object.\"},\"fields\":{\"$ref\":\"#\\/definitions\\/MetaobjectFieldCollection\"},\"capabilities\":{\"$ref\":\"#\\/definitions\\/MetaobjectCapabilities\"},\"access\":{\"$ref\":\"#\\/definitions\\/MetaobjectAccessControls\"}},\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"Metaobjects are custom data structures that your app can define and create to store your app's information. Similar to [metafields](https:\\/\\/shopify.dev\\/docs\\/apps\\/build\\/custom-data\\/metafields), they can be associated with a Shopify resource such as a product or a collection. However, they can also exist on their own. Metaobjects provide you with a way to create resources that Shopify doesn't offer out of the box.\\n\\nUsers can define their own metaobjects or use the ones that your app creates to extend their shop's data model. Metaobjects are also available in themes using Liquid, Storefront API, and Admin API.\"},\"MetaobjectFieldCollection\":{\"type\":\"object\",\"additionalProperties\":{\"oneOf\":[{\"$ref\":\"#\\/definitions\\/MetaFieldDefinitionTypes\"},{\"$ref\":\"#\\/definitions\\/FieldObject\"}]},\"title\":\"Custom Data \\u003e Metaobject Fields\",\"description\":\"Metaobjects enable app users and app developers to define custom objects in Shopify. This guide shows you how to get started with creating and managing metaobjects and metaobject definitions using the GraphQL Admin API.\"},\"MetaobjectCapabilities\":{\"type\":\"object\",\"additionalProperties\":false,\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"The capabilities of the metaobject definition.\",\"properties\":{\"publishable\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Publishable\",\"description\":\"The publishable capability enables users of your metaobject to set its status to either DRAFT or ACTIVE. This can be useful for providing users a way to stage their content before making it available to their storefronts - even if you defined it to be available to storefronts using access controls.\"},\"translatable\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Translatable\",\"description\":\"The translatable capability allows the fields of a metaobject to be translated. You can be enable this capability by setting translatable to true when performing a metaobjectDefinitionCreate or metaobjectDefinitionUpdate mutation.\"},\"renderable\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Renderable\",\"description\":\"The renderable capability exposes metaobject SEO fields to Liquid and the Storefront API. Metaobjects with this capability are also included in the store's sitemap, which is sitemap.xml for Liquid storefronts and accessible using the Sitemap query in the Storefront API.\"},\"renderable_meta_title_field\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Renderable\"},\"renderable_meta_description_field\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Renderable\"}}},\"MetaFieldDefinitionTypes\":{\"type\":\"string\",\"oneOf\":[{\"type\":\"string\",\"pattern\":\"^(?\\u003ctype\\u003e(list\\\\.)?(metaobject_reference|mixed_reference))\\u003c(?\\u003creferences\\u003e((\\\\$app:)?[a-zA-Z0-9_-]+(,\\\\s*)?)+)\\u003e$\"},{\"type\":\"string\",\"enum\":[\"boolean\",\"color\",\"date_time\",\"date\",\"dimension\",\"id\",\"json\",\"language\",\"link\",\"list.color\",\"list.date_time\",\"list.date\",\"list.dimension\",\"list.link\",\"list.number_decimal\",\"list.number_integer\",\"list.rating\",\"list.single_line_text_field\",\"list.url\",\"list.volume\",\"list.weight\",\"money\",\"multi_line_text_field\",\"number_decimal\",\"number_integer\",\"rating\",\"rich_text_field\",\"single_line_text_field\",\"url\",\"volume\",\"weight\",\"company_reference\",\"list.company_reference\",\"customer_reference\",\"list.customer_reference\",\"product_reference\",\"list.product_reference\",\"collection_reference\",\"list.collection_reference\",\"variant_reference\",\"list.variant_reference\",\"file_reference\",\"list.file_reference\",\"product_taxonomy_value_reference\",\"list.product_taxonomy_value_reference\",\"metaobject_reference\",\"list.metaobject_reference\",\"mixed_reference\",\"list.mixed_reference\",\"page_reference\",\"list.page_reference\",\"article_reference\",\"list.article_reference\",\"order_reference\",\"list.order_reference\"]}],\"title\":\"Custom Data \\u003e Types\",\"description\":\"Set the [data type](https:\\/\\/shopify.dev\\/docs\\/apps\\/build\\/custom-data\\/metafields\\/list-of-data-types) of the metafield.\\n\\nEach [metafield](https:\\/\\/shopify.dev\\/docs\\/apps\\/build\\/custom-data) and [metafield definition](https:\\/\\/shopify.dev\\/docs\\/apps\\/build\\/custom-data\\/metafields\\/definitions) has a type, which defines the type of information that it can store. The metafield types have built-in validation and [Liquid](https:\\/\\/shopify.dev\\/docs\\/api\\/liquid\\/objects\\/metafield) support.\"},\"FieldObject\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"type\"],\"properties\":{\"type\":{\"$ref\":\"#\\/definitions\\/MetaFieldDefinitionTypes\"},\"name\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Metafields\",\"description\":\"The human-readable name.\"},\"description\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Metafields\",\"description\":\"The administrative description.\"},\"required\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metaobjects \\u003e Metafields\",\"description\":\"Required status of the field within the metaobject composition.\"},\"default_value\":{\"type\":[\"number\",\"string\",\"object\",\"array\",\"boolean\"],\"title\":\"Custom Data \\u003e Metaobjects \\u003e Metafields \\u003e Default Value\",\"description\":\"The default value for new metafields of this field definition.\"},\"validations\":{\"$ref\":\"#\\/definitions\\/ValidationRule\"},\"capabilities\":{\"$ref\":\"#\\/definitions\\/MetaobjectFieldCapabilities\"}}},\"ValidationRule\":{\"type\":\"object\",\"additionalProperties\":{\"type\":[\"number\",\"string\",\"object\",\"array\"]},\"title\":\"Custom Data \\u003e Validation Rules\",\"description\":\"Validation options enable you to apply additional constraints to the data that a metafield can store, such as a minimum or maximum value, or a regular expression. This guide shows you how to manage validation options using the GraphQL Admin API.\"},\"MetaobjectFieldCapabilities\":{\"type\":\"object\",\"title\":\"Field Capabilities\",\"description\":\"Configure field-level features and behaviors\",\"additionalProperties\":false,\"properties\":{\"admin_filterable\":{\"type\":\"boolean\",\"title\":\"Admin Filterable\",\"description\":\"Allow this field to be used for filtering in the Shopify admin\"}}},\"MetafieldsCollection\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"#\\/definitions\\/Metafield\"},\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"A namespace for metafields. `.app` places metafields under the `$app` namespace; `.other` places metafields under the `$app:other` namespace.\"},\"Metafield\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"type\"],\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"Metafields are a flexible way for your app to add and store additional information about a Shopify resource, such as a product, a collection, [and many other owner types](https:\\/\\/shopify.dev\\/docs\\/api\\/admin-graphql\\/latest\\/enums\\/MetafieldOwnerType). The additional information stored in metafields can be almost anything related to a resource. Some examples are specifications, size charts, downloadable documents, release dates, images, or part numbers.\\n\\nMerchants and other apps can retrieve and edit the data that's stored in metafields from the Shopify admin. You can also access metafields in themes using Liquid and through the Storefront API.\",\"properties\":{\"type\":{\"$ref\":\"#\\/definitions\\/MetaFieldDefinitionTypes\"},\"name\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"The human-readable name of the metafield definition.\"},\"description\":{\"type\":\"string\",\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"The description of the metafield definition.\"},\"default_value\":{\"type\":[\"number\",\"string\",\"object\",\"array\",\"boolean\"],\"title\":\"Custom Data \\u003e Metafields \\u003e Default Value\",\"description\":\"The default value for new metafields of this definition.\"},\"validations\":{\"$ref\":\"#\\/definitions\\/ValidationRule\"},\"capabilities\":{\"$ref\":\"#\\/definitions\\/MetafieldCapabilities\"},\"access\":{\"$ref\":\"#\\/definitions\\/MetafieldAccessControls\"}}},\"MetafieldCapabilities\":{\"type\":\"object\",\"additionalProperties\":false,\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"The capabilities of the metafield definition.\",\"properties\":{\"admin_filterable\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metafields \\u003e Admin Filterable\",\"description\":\"The admin filterable capability allows you to use a metafield definition and its values to filter resource lists in the Shopify admin. This capability makes it easier for merchants to find and manage resources such as products based on their specific metafield values.\"},\"unique_values\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metafields \\u003e Unique Values\",\"description\":\"The unique values capability allows you to ensure that all values of a metafield definition are unique.\"},\"cart_to_order_copyable\":{\"type\":\"boolean\",\"title\":\"Custom Data \\u003e Metafields \\u003e Cart to Order Copyable\",\"description\":\"The cart to order copyable capability automatically propagates the value from a cart metafield to the corresponding order metafield (matching namespace and key) when the order is created.\"}}},\"MetafieldAccessControls\":{\"type\":\"object\",\"additionalProperties\":false,\"title\":\"Custom Data \\u003e Metafields\",\"description\":\"The access settings that apply to each of the metafields that belong to the metafield definition.\",\"properties\":{\"admin\":{\"title\":\"Custom Data \\u003e Access Control\",\"description\":\"Access configuration for Admin API surface areas, including the GraphQL Admin API.\",\"type\":\"string\",\"enum\":[\"merchant_read\",\"merchant_read_write\"]},\"storefront\":{\"title\":\"Custom Data \\u003e Access Control\",\"description\":\"Access configuration for Storefront API surface areas, including the GraphQL Storefront API and Liquid.\",\"type\":\"string\",\"enum\":[\"none\",\"public_read\"]},\"customer_account\":{\"title\":\"Custom Data \\u003e Access Control\",\"description\":\"The Customer Account API access setting to use for the metafields under this definition.\",\"type\":\"string\",\"enum\":[\"none\",\"read\",\"read_write\"]}}},\"MetaobjectAccessControls\":{\"type\":\"object\",\"additionalProperties\":false,\"title\":\"Custom Data \\u003e Metaobjects\",\"description\":\"Access configuration for the metaobjects created with this definition.\",\"properties\":{\"admin\":{\"title\":\"Custom Data \\u003e Access Control\",\"description\":\"Access configuration for Admin API surface areas, including the GraphQL Admin API.\",\"type\":\"string\",\"enum\":[\"merchant_read\",\"merchant_read_write\"]},\"storefront\":{\"title\":\"Custom Data \\u003e Access Control\",\"description\":\"Access configuration for Storefront API surface areas, including the GraphQL Storefront API and Liquid.\",\"type\":\"string\",\"enum\":[\"none\",\"public_read\"]}}},\"StandardMetaobjectDefinitionTemplates\":{\"type\":\"array\",\"minItems\":1,\"uniqueItems\":true,\"items\":{\"type\":\"string\",\"enum\":[\"product_review\",\"shopify--qa-pair\"]},\"title\":\"Standard Metaobject Definition Templates\",\"description\":\"Array of standard metaobject definition templates to enable (e.g. 'shopify--qa-pair'). These are pre-defined metaobject definitions provided by Shopify.\"}}}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "theme_app_extension",
+      "additionalIdentifiers": [],
+      "externalName": "Online Store - App Theme Extension",
+      "partnersWebIdentifier": "theme_app_extension",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "theme"
+      },
+      "identifier": "theme",
+      "graphQLType": "theme_app_extension",
+      "name": "Online Store - App Theme Extension",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "payments_extension",
+      "additionalIdentifiers": [],
+      "externalName": "Payments Extension",
+      "partnersWebIdentifier": "payments_extension",
+      "registrationLimit": 25,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "payments_extension",
+      "name": "Payments Extension",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 25,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "pos_ui",
+      "additionalIdentifiers": [],
+      "externalName": "POS UI Extension",
+      "partnersWebIdentifier": "pos_ui_extension",
+      "registrationLimit": 50,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "ui"
+      },
+      "identifier": "pos_ui_extension",
+      "dependency": "@shopify/retail-ui-extensions",
+      "name": "POS UI Extension",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 50,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": null,
+      "loadedRemoteSpecs": true
+    },
+    {
+      "externalIdentifier": "subscription_link_extension",
+      "additionalIdentifiers": [],
+      "externalName": "Subscription Link",
+      "partnersWebIdentifier": "subscription_link_extension",
+      "registrationLimit": 1,
+      "experience": "extension",
+      "uidStrategy": "uuid",
+      "buildConfig": {
+        "mode": "none"
+      },
+      "identifier": "subscription_link_extension",
+      "name": "Subscription Link",
+      "gated": false,
+      "options": {
+        "managementExperience": "cli",
+        "registrationLimit": 1,
+        "uidIsClientProvided": true
+      },
+      "validationSchema": {
+        "jsonSchema": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"type\":\"object\",\"additionalProperties\":false,\"properties\":{\"pattern\":{\"type\":\"string\",\"pattern\":\"^(https?:\\/\\/[^\\\\s\\/$.?#].[^\\\\s]*|\\/[^\\\\s]*)$\"},\"name\":{\"type\":\"string\"}},\"required\":[\"pattern\"]}",
+        "__typename": "ValidationSchema"
+      },
+      "loadedRemoteSpecs": true
+    }
+  ],
+  "remoteFlags": [],
+  "_hiddenConfig": {
+    "dev_store_url": "grenoa.myshopify.com"
+  },
+  "allExtensions": [
+    {
+      "configuration": {
+        "name": "t:name",
+        "type": "function",
+        "handle": "pincode-guard",
+        "uid": "86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1",
+        "description": "t:description",
+        "api_version": "2026-01",
+        "build": {
+          "path": "dist/function.wasm",
+          "wasm_opt": true
+        },
+        "configuration_ui": true,
+        "targeting": [
+          {
+            "target": "cart.validations.generate.run",
+            "input_query": "src/cart_validations_generate_run.graphql",
+            "export": "cart-validations-generate-run"
+          }
+        ]
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/extensions/pincode-guard/shopify.extension.toml",
+      "entrySourceFilePath": "D:/UGAPP/regional-pricing/extensions/pincode-guard/src/index.js",
+      "directory": "D:/UGAPP/regional-pricing/extensions/pincode-guard",
+      "specification": {
+        "externalIdentifier": "function",
+        "additionalIdentifiers": [
+          "order_discounts",
+          "cart_checkout_validation",
+          "cart_transform",
+          "delivery_customization",
+          "payment_customization",
+          "product_discounts",
+          "shipping_discounts",
+          "fulfillment_constraints",
+          "order_routing_location_rule",
+          "local_pickup_delivery_option_generator",
+          "pickup_point_delivery_option_generator"
+        ],
+        "externalName": "function",
+        "partnersWebIdentifier": "function",
+        "registrationLimit": 100,
+        "experience": "extension",
+        "uidStrategy": "uuid",
+        "buildConfig": {
+          "mode": "function"
+        },
+        "identifier": "function",
+        "name": "function",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 100,
+          "uidIsClientProvided": true
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "pincode-guard",
+      "localIdentifier": "pincode-guard",
+      "idEnvironmentVariableName": "SHOPIFY_PINCODE_GUARD_ID",
+      "outputPath": "D:/UGAPP/regional-pricing/extensions/pincode-guard/dist/function.wasm",
+      "uid": "86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1",
+      "devUUID": "dev-86cccb2e-aa74-0f97-7ebe-6ea6d01261aec9f1aea1"
+    },
+    {
+      "configuration": {
+        "name": "region-pincode-extension",
+        "type": "theme",
+        "uid": "3164aee0-fa90-4195-e25c-14465edf0a26aeb99a5e"
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/extensions/region-pincode-extension/shopify.extension.toml",
+      "entrySourceFilePath": "",
+      "directory": "D:/UGAPP/regional-pricing/extensions/region-pincode-extension",
+      "specification": {
+        "externalIdentifier": "theme_app_extension",
+        "additionalIdentifiers": [],
+        "externalName": "Online Store - App Theme Extension",
+        "partnersWebIdentifier": "theme_app_extension",
+        "registrationLimit": 1,
+        "experience": "extension",
+        "uidStrategy": "uuid",
+        "buildConfig": {
+          "mode": "theme"
+        },
+        "identifier": "theme",
+        "graphQLType": "theme_app_extension",
+        "name": "Online Store - App Theme Extension",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 1,
+          "uidIsClientProvided": true
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "region-pincode-extension",
+      "localIdentifier": "region-pincode-extension",
+      "idEnvironmentVariableName": "SHOPIFY_REGION_PINCODE_EXTENSION_ID",
+      "outputPath": "D:/UGAPP/regional-pricing/extensions/region-pincode-extension",
+      "uid": "3164aee0-fa90-4195-e25c-14465edf0a26aeb99a5e",
+      "devUUID": "dev-3164aee0-fa90-4195-e25c-14465edf0a26aeb99a5e"
+    },
+    {
+      "configuration": {
+        "name": "t:name",
+        "type": "function",
+        "handle": "regional-cart-transform",
+        "uid": "30de25dc-225f-18fd-0f07-36d874bdb56c634ba302",
+        "description": "t:description",
+        "api_version": "2026-01",
+        "build": {
+          "path": "dist/function.wasm",
+          "wasm_opt": true
+        },
+        "configuration_ui": true,
+        "ui": {
+          "paths": {
+            "create": "/",
+            "details": "/"
+          }
+        },
+        "targeting": [
+          {
+            "target": "cart.transform.run",
+            "input_query": "src/cart_transform_run.graphql",
+            "export": "cart-transform-run"
+          }
+        ]
+      },
+      "configurationPath": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform/shopify.extension.toml",
+      "entrySourceFilePath": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform/src/index.js",
+      "directory": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform",
+      "specification": {
+        "externalIdentifier": "function",
+        "additionalIdentifiers": [
+          "order_discounts",
+          "cart_checkout_validation",
+          "cart_transform",
+          "delivery_customization",
+          "payment_customization",
+          "product_discounts",
+          "shipping_discounts",
+          "fulfillment_constraints",
+          "order_routing_location_rule",
+          "local_pickup_delivery_option_generator",
+          "pickup_point_delivery_option_generator"
+        ],
+        "externalName": "function",
+        "partnersWebIdentifier": "function",
+        "registrationLimit": 100,
+        "experience": "extension",
+        "uidStrategy": "uuid",
+        "buildConfig": {
+          "mode": "function"
+        },
+        "identifier": "function",
+        "name": "function",
+        "gated": false,
+        "options": {
+          "managementExperience": "cli",
+          "registrationLimit": 100,
+          "uidIsClientProvided": true
+        },
+        "validationSchema": null,
+        "loadedRemoteSpecs": true
+      },
+      "handle": "regional-cart-transform",
+      "localIdentifier": "regional-cart-transform",
+      "idEnvironmentVariableName": "SHOPIFY_REGIONAL_CART_TRANSFORM_ID",
+      "outputPath": "D:/UGAPP/regional-pricing/extensions/regional-cart-transform/dist/function.wasm",
+      "uid": "30de25dc-225f-18fd-0f07-36d874bdb56c634ba302",
+      "devUUID": "dev-30de25dc-225f-18fd-0f07-36d874bdb56c634ba302"
+    }
+  ]
+}

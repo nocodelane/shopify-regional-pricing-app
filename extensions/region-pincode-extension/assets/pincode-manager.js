@@ -225,6 +225,8 @@
                 });
 
                 const rulesJson = JSON.stringify(rulesMap);
+                const needsPropertyCleanup = cart.items.some(item => item.properties && item.properties._regionMultiplier);
+
                 if (cart.attributes?._regionMultiplier !== globalMult.toString() || cart.attributes?._regionalRules !== rulesJson) {
                     await fetch('/cart/update.js', {
                         method: 'POST',
@@ -236,6 +238,22 @@
                             } 
                         })
                     });
+                }
+
+                // --- Auto-Reconciliation: Strip properties once safely in the global map ---
+                if (needsPropertyCleanup) {
+                    for (const item of cart.items) {
+                        if (item.properties && item.properties._regionMultiplier) {
+                            await fetch('/cart/change.js', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    line: cart.items.indexOf(item) + 1,
+                                    properties: { ...item.properties, _regionMultiplier: null }
+                                })
+                            });
+                        }
+                    }
                 }
             } catch (e) {
                 console.error("Regional Pricing Sync Error", e);
@@ -366,6 +384,22 @@
                         if (el.innerText !== newText) {
                             el.innerText = newText;
                         }
+                    });
+
+                    // Inject properties for direct-add and Buy It Now support
+                    document.querySelectorAll('form[action*="/cart/add"]').forEach(form => {
+                        let gid = form.querySelector('input[name="product-id"]')?.value;
+                        if (!gid && window.ShopifyAnalytics?.meta?.product?.id) gid = window.ShopifyAnalytics.meta.product.id;
+                        if (gid && !gid.toString().includes('Product/')) gid = `gid://shopify/Product/${gid}`;
+                        
+                        const finalMult = effectiveMultipliers[gid] || getStored("regionMultiplier") || 1.0;
+                        let prop = form.querySelector('input[name="properties[_regionMultiplier]"]');
+                        if (!prop) {
+                            prop = document.createElement('input');
+                            prop.type = 'hidden'; prop.name = 'properties[_regionMultiplier]';
+                            form.appendChild(prop);
+                        }
+                        prop.value = parseFloat(finalMult).toFixed(4);
                     });
                     revealPrices();
                 };
