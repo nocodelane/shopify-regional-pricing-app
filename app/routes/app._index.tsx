@@ -27,7 +27,7 @@ import crypto from "node:crypto";
 import { encrypt } from "../utils/encryption.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const shop = session.shop;
   
   const [regions, totalSearches, matchedSearches, waitlistCount, unmatchedSearches, llmConfigRecord] = await Promise.all([
@@ -72,7 +72,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
   }
 
-  // Normalize SQLite numeric booleans to JS booleans (Prisma usually handles this if schema is correct, but safe to keep)
+  // Normalize SQLite numeric booleans to JS booleans
   const normalizedConfig = {
       ...config,
       regionalPricingActive: !!config.regionalPricingActive,
@@ -84,10 +84,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       pincodeGuardActive: !!config.pincodeGuardActive,
   };
 
+  const transformResponse = await admin.graphql(`
+    query {
+      cartTransforms(first: 1) {
+        nodes {
+          id
+          functionId
+        }
+      }
+    }
+  `);
+  const transformData: any = await transformResponse.json();
+  const activeTransform = transformData.data.cartTransforms.nodes[0];
+
   return json({ 
     regions, 
     shop,
     config: normalizedConfig,
+    activeTransform,
     llmConfig: {
         provider: (llmConfigRecord as any)?.provider || "openai",
         modelId: (llmConfigRecord as any)?.modelId || "gpt-4o",
@@ -107,7 +121,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -135,6 +149,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         where: { shop: session.shop },
         data: { [feature]: value }
     });
+    return json({ success: true });
+  }
+
+  if (intent === "activate-checkout-pricing") {
+    const functionId = "019d1c02-7f27-7d6f-bc73-c4de19fb1828"; 
+
+    const response = await admin.graphql(`
+        mutation cartTransformCreate($functionId: String!) {
+          cartTransformCreate(functionId: $functionId) {
+            cartTransform { id }
+            userErrors { message }
+          }
+        }
+      `, { variables: { functionId } });
+    
+    const data: any = await response.json();
+    if (data.data.cartTransformCreate.userErrors.length > 0) {
+        return json({ error: data.data.cartTransformCreate.userErrors[0].message }, { status: 400 });
+    }
     return json({ success: true });
   }
 
@@ -170,7 +203,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
     });
 
-    // Also update aiFeaturesActive if enabling
     if (enabled) {
         await prisma.appConfig.update({
             where: { shop: session.shop },
@@ -302,16 +334,25 @@ export default function Index() {
                      <Text variant="headingSm" as="h3" tone="subdued">System Health</Text>
                      <Badge tone="success">Optimal</Badge>
                   </InlineStack>
-                  <BlockStack gap="200">
-                     <InlineStack align="space-between">
-                        <Text variant="bodySm" as="span">Edge Sync</Text>
-                        <Text variant="bodySm" fontWeight="bold" tone="success" as="span">Active</Text>
-                     </InlineStack>
-                     <InlineStack align="space-between">
-                        <Text variant="bodySm" as="span">Ruleset Size</Text>
-                        <Text variant="bodySm" fontWeight="bold" as="span">{stats.ruleCount} Rules</Text>
-                     </InlineStack>
-                  </BlockStack>
+                   <BlockStack gap="200">
+                      <InlineStack align="space-between">
+                         <Text variant="bodySm" as="span">Edge Sync</Text>
+                         <Text variant="bodySm" fontWeight="bold" tone="success" as="span">Active</Text>
+                      </InlineStack>
+                      <InlineStack align="space-between">
+                         <Text variant="bodySm" as="span">Checkout Pricing</Text>
+                         {/* @ts-ignore */}
+                         {useLoaderData().activeTransform ? (
+                            <Text variant="bodySm" fontWeight="bold" tone="success" as="span">Healthy</Text>
+                         ) : (
+                            <Button size="micro" variant="plain" onClick={() => submit({ intent: "activate-checkout-pricing" }, { method: "POST" })}>Fix Now</Button>
+                         )}
+                      </InlineStack>
+                      <InlineStack align="space-between">
+                         <Text variant="bodySm" as="span">Ruleset Size</Text>
+                         <Text variant="bodySm" fontWeight="bold" as="span">{stats.ruleCount} Rules</Text>
+                      </InlineStack>
+                   </BlockStack>
                </BlockStack>
              </Card>
           </Grid.Cell>

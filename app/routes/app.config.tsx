@@ -77,11 +77,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     select: { id: true, name: true }
   });
 
-  const [visibilityConfigs, appConfig, modalConfig] = await Promise.all([
+  const [visibilityConfigs, appConfig, existingModalConfig] = await Promise.all([
     prisma.regionHomepageConfig.findMany({ where: { shop }, include: { region: true } }),
     prisma.appConfig.findUnique({ where: { shop } }),
-    prisma.modalConfig.findUnique({ where: { shop } }) || prisma.modalConfig.create({ data: { shop } })
+    prisma.modalConfig.findUnique({ where: { shop } })
   ]);
+  
+  let modalConfig = existingModalConfig;
+  if (!modalConfig) {
+    modalConfig = await prisma.modalConfig.create({ data: { shop } });
+  }
   
   return json({ components, regions, visibilityConfigs, appConfig, modalConfig, shop });
 };
@@ -265,7 +270,7 @@ export default function RegionalManagement() {
   const navigation = useNavigation();
 
   const [selectedTab, setSelectedTab] = useState(0);
-  const [modalFormState, setModalFormState] = useState<any>(modalConfig);
+  const [modalFormState, setModalFormState] = useState<any>(modalConfig || {});
   
   useEffect(() => {
     setModalFormState(modalConfig);
@@ -742,7 +747,10 @@ export default function RegionalManagement() {
 
   const [activeDesignerTab, setActiveDesignerTab] = useState(0);
 
-  const renderExperienceDesigner = () => (
+  const renderExperienceDesigner = () => {
+    if (!modalFormState) return <SkeletonPage title="Loading Designer..." />;
+
+    return (
     <BlockStack gap="600">
         <InlineStack gap="300" align="space-between" blockAlign="center">
             <BlockStack gap="100">
@@ -1050,7 +1058,8 @@ export default function RegionalManagement() {
             </Layout.Section>
         </Layout>
     </BlockStack>
-  );
+    );
+  };
 
   const renderVisibilitySection = () => (
     <BlockStack gap="600">
