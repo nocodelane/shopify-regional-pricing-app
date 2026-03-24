@@ -173,28 +173,56 @@
 
         const syncCart = async (pricing) => {
             const globalMult = getStored("regionMultiplier");
-            if (!globalMult) return;
+            const regionId = getStored("regionId");
+            if (!globalMult || !regionId) return;
+
             try {
                 const cart = await fetch('/cart.js').then(r => r.json());
-                const rulesMap = {};
-                let needsUpdate = false;
+                if (!cart.items || cart.items.length === 0) return;
 
-                // Build a map of product GIDs to their effective multipliers for the current region
-                if (cart.items && cart.items.length > 0) {
-                    cart.items.forEach(item => {
-                        const gid = `gid://shopify/Product/${item.product_id}`;
-                        if (pricing && pricing[gid]) {
-                           const rule = pricing[gid];
-                           let m = 1.0;
-                           const orig = item.original_price / 100;
-                           if (rule.ruleType === 'percentage') m = parseFloat(rule.multiplier);
-                           else if (rule.ruleType === 'fixed_adjustment') m = (orig + parseFloat(rule.multiplier)) / orig;
-                           else if (rule.ruleType === 'fixed_price') m = parseFloat(rule.multiplier) / orig;
-                           else m = parseFloat(globalMult) || 1.0;
-                           rulesMap[gid] = parseFloat(m.toFixed(4));
-                        }
-                    });
+                const rulesMap = {};
+                const missingIds = [];
+                let currentPricing = pricing || {};
+
+                // Check for cached pricing first
+                const cacheKey = `pincode_pricing_${regionId}`;
+                if (!pricing) {
+                    const cached = sessionStorage.getItem(cacheKey);
+                    if (cached) currentPricing = JSON.parse(cached).productPricing;
                 }
+
+                cart.items.forEach(item => {
+                    const gid = `gid://shopify/Product/${item.product_id}`;
+                    if (!currentPricing[gid]) missingIds.push(gid);
+                });
+
+                // Fetch missing pricing if needed
+                if (missingIds.length > 0) {
+                    const resp = await fetch(`/apps/regional-sync-api/api/pricing`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        body: JSON.stringify({ shop, region: regionId, products: missingIds })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        currentPricing = { ...currentPricing, ...data.productPricing };
+                        sessionStorage.setItem(cacheKey, JSON.stringify({ productPricing: currentPricing, timestamp: Date.now() }));
+                    }
+                }
+
+                cart.items.forEach(item => {
+                    const gid = `gid://shopify/Product/${item.product_id}`;
+                    if (currentPricing[gid]) {
+                        const rule = currentPricing[gid];
+                        let m = 1.0;
+                        const orig = item.original_price / 100;
+                        if (rule.ruleType === 'percentage') m = parseFloat(rule.multiplier);
+                        else if (rule.ruleType === 'fixed_adjustment') m = (orig + parseFloat(rule.multiplier)) / orig;
+                        else if (rule.ruleType === 'fixed_price') m = parseFloat(rule.multiplier) / orig;
+                        else m = parseFloat(globalMult) || 1.0;
+                        rulesMap[gid] = parseFloat(m.toFixed(4));
+                    }
+                });
 
                 const rulesJson = JSON.stringify(rulesMap);
                 if (cart.attributes?._regionMultiplier !== globalMult.toString() || cart.attributes?._regionalRules !== rulesJson) {
@@ -209,7 +237,48 @@
                         })
                     });
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("Regional Pricing Sync Error", e);
+            }
+        };
+
+        // --- AJAX Interceptor ---
+        const initAjaxIntercept = () => {
+            if (window._pincodeIntercepted) return;
+            window._pincodeIntercepted = true;
+
+            const originalFetch = window.fetch;
+            window.fetch = function() {
+                return originalFetch.apply(this, arguments).then(async (response) => {
+                    const url = arguments[0];
+                    if (typeof url === 'string' && (url.includes('/cart/add') || url.includes('/cart/update') || url.includes('/cart/change') || url.includes('/cart/clear'))) {
+                        if (response.ok) {
+                            // Give Shopify a moment to process the cart change
+                            setTimeout(() => syncCart(), 500);
+                        }
+                    }
+                    return response;
+                });
+            };
+
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function() {
+                this._url = arguments[1];
+                return originalOpen.apply(this, arguments);
+            };
+
+            const originalSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function() {
+                this.addEventListener('load', function() {
+                    const url = this._url;
+                    if (typeof url === 'string' && (url.includes('/cart/add') || url.includes('/cart/update') || url.includes('/cart/change') || url.includes('/cart/clear'))) {
+                        if (this.status >= 200 && this.status < 300) {
+                            setTimeout(() => syncCart(), 500);
+                        }
+                    }
+                });
+                return originalSend.apply(this, arguments);
+            };
         };
 
         async function applyRegionalPricing() {
@@ -217,7 +286,11 @@
             if (!regionId || regionId === "null") { revealPrices(); return; }
 
             const productIds = detectProducts();
-            if (productIds.length === 0) { revealPrices(); return; }
+            if (productIds.length === 0) { 
+                revealPrices(); 
+                syncCart(); // Still sync cart attributes for global percentage
+                return; 
+            }
 
             try {
                 const cacheKey = `pincode_pricing_${regionId}`;
@@ -300,6 +373,7 @@
                 update();
                 new MutationObserver(update).observe(document.body, { childList: true, subtree: true, characterData: true });
                 syncCart(productPricing);
+                initAjaxIntercept();
             } catch (e) { revealPrices(); }
         }
 
